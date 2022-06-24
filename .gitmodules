@@ -18,14 +18,6 @@
 	path = externals/pytorch
 	url = git@github.com:pytorch/pytorch.git
 	ignore = dirty
-[submodule "externals/libav"]
-	path = externals/libav
-	url = git@github.com:libav/libav.git
-	ignore = dirty
-[submodule "externals/opencv"]
-	path = externals/opencv
-	url = git@github.com:opencv/opencv.git
-	ignore = dirty
 [submodule "externals/stb"]
 	path = externals/stb
 	url = git@github.com:nothings/stb.git
