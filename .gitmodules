@@ -1,0 +1,32 @@
+[submodule "externals/onnxruntime"]
+	path = externals/onnxruntime
+	url = git@github.com:microsoft/onnxruntime.git
+	ignore = dirty
+[submodule "externals/fmt"]
+	path = externals/fmt
+	url = git@github.com:fmtlib/fmt.git
+	ignore = dirty
+[submodule "externals/mio"]
+	path = externals/mio
+	url = git@github.com:mandreyel/mio.git
+	ignore = dirty
+[submodule "externals/frozen"]
+	path = externals/frozen
+	url = git@github.com:serge-sans-paille/frozen.git
+	ignore = dirty
+[submodule "externals/pytorch"]
+	path = externals/pytorch
+	url = git@github.com:pytorch/pytorch.git
+	ignore = dirty
+[submodule "externals/libav"]
+	path = externals/libav
+	url = git@github.com:libav/libav.git
+	ignore = dirty
+[submodule "externals/opencv"]
+	path = externals/opencv
+	url = git@github.com:opencv/opencv.git
+	ignore = dirty
+[submodule "externals/stb"]
+	path = externals/stb
+	url = git@github.com:nothings/stb.git
+	ignore = dirty
