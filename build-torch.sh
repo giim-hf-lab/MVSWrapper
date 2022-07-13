@@ -19,6 +19,7 @@ cmake --toolchain ${PWD}/toolchains/gnu/host.cmake -G Ninja -B build/torch \
 	-DUSE_NVRTC=ON \
 	-DUSE_C10D_NCCL=ON \
 	-DUSE_NCCL_WITH_UCC=ON \
+	-DUSE_LITE_INTERPRETER_PROFILER=OFF \
 	-DUSE_C10D_MPI=ON \
 	externals/torch/pytorch
 
