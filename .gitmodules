@@ -1,7 +1,3 @@
-[submodule "externals/onnxruntime"]
-	path = externals/onnxruntime
-	url = git@github.com:microsoft/onnxruntime.git
-	ignore = dirty
 [submodule "externals/fmt"]
 	path = externals/fmt
 	url = git@github.com:fmtlib/fmt.git
@@ -10,15 +6,17 @@
 	path = externals/mio
 	url = git@github.com:mandreyel/mio.git
 	ignore = dirty
-[submodule "externals/frozen"]
-	path = externals/frozen
-	url = git@github.com:serge-sans-paille/frozen.git
+[submodule "externals/argparse"]
+	path = externals/argparse
+	url = git@github.com:p-ranav/argparse.git
 	ignore = dirty
-[submodule "externals/pytorch"]
-	path = externals/pytorch
+[submodule "externals/spdlog"]
+	path = externals/spdlog
+	url = git@github.com:gabime/spdlog.git
+	ignore = dirty
+[submodule "externals/torch/vision"]
+	path = externals/torch/vision
+	url = git@github.com:pytorch/vision.git
+[submodule "externals/torch/pytorch"]
+	path = externals/torch/pytorch
 	url = git@github.com:pytorch/pytorch.git
-	ignore = dirty
-[submodule "externals/stb"]
-	path = externals/stb
-	url = git@github.com:nothings/stb.git
-	ignore = dirty

@@ -1,0 +1,6 @@
+{
+  "cmake.buildDirectory": "${workspaceFolder}/build/project",
+  "cmake.generator": "Ninja",
+  "C_Cpp.autoAddFileAssociations": false,
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}
