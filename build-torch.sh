@@ -7,7 +7,7 @@ mkdir -p "$install_prefix"
 
 torch_path="$(realpath $install_prefix/torch)"
 
-cmake --toolchain ${PWD}/toolchains/gnu/host.cmake -G Ninja -B build/torch \
+cmake --toolchain ${PWD}/toolchains/ubuntu.cmake -G Ninja -B build/torch \
 	-DCMAKE_INSTALL_PREFIX="$torch_path" \
 	-DATEN_NO_TEST=ON \
 	-DBUILD_PYTHON=OFF \
@@ -27,7 +27,7 @@ cmake --build build/torch --target install
 
 torchvision_path="$(realpath $install_prefix/torchvision)"
 
-cmake --toolchain ${PWD}/toolchains/gnu/host.cmake -G Ninja -B build/torchvision \
+cmake --toolchain ${PWD}/toolchains/ubuntu.cmake -G Ninja -B build/torchvision \
 	-DCMAKE_INSTALL_PREFIX="$torchvision_path" \
 	-DCMAKE_PREFIX_PATH="$torch_path" \
 	-DWITH_CUDA=ON \

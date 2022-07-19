@@ -2,5 +2,16 @@
   "cmake.buildDirectory": "${workspaceFolder}/build/project",
   "cmake.generator": "Ninja",
   "C_Cpp.autoAddFileAssociations": false,
-  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+  "C_Cpp.default.cStandard": "c17",
+  "C_Cpp.default.cppStandard": "c++20",
+  "C_Cpp.default.includePath": [
+    "/usr/include/opencv4",
+    "${workspaceFolder}/dist/torch/include",
+    "${workspaceFolder}/dist/torchvision/include",
+    "${workspaceFolder}/externals/argparse/include",
+    "${workspaceFolder}/externals/fmt/include",
+    "${workspaceFolder}/externals/mio/include",
+    "${workspaceFolder}/externals/spdlog/include",
+    "${workspaceFolder}/include"
+  ]
 }
