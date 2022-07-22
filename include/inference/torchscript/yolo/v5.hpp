@@ -17,7 +17,8 @@
 #include <torch/script.h>
 
 #include "../../../std.hpp"
-#include "./augmentation.hpp"
+#include "../utils.hpp"
+#include "./utils.hpp"
 
 namespace inference::torchscript::yolo
 {
@@ -77,50 +78,29 @@ public:
 		const torch::Tensor & exclusions
 	) const &
 	{
+		auto original_size = image.size();
+		auto scaler = transformation::letterbox(image, _accepted_size, _scale_up, _padded_colour);
+		cv::cvtColor(image, image, cv::ColorConversionCodes::COLOR_BGR2RGB);
+
 		torch::InferenceMode guard(true);
 
-		auto size = image.size();
-		bool scaled;
-		double ratio;
-		int64_t left, right, top, bottom;
-		if (size != _accepted_size)
-		{
-			auto [reshaped, _ratio, _left, _right, _top, _bottom] = letterbox(
-				image,
-				_accepted_size,
-				_scale_up,
-				_padded_colour
-			);
-			scaled = true;
-			image = std::move(reshaped);
-			ratio = _ratio;
-			left = _left;
-			right = _right;
-			top = _top;
-			bottom = _bottom;
-		}
-		else
-			scaled = false;
-
-		cv::cvtColor(image, image, cv::ColorConversionCodes::COLOR_BGR2RGB);
 		auto result = compute(
 			torch::from_blob(image.data, { _accepted_size.height, _accepted_size.width, 3 }, torch::kByte)
 				.permute({ 2, 0, 1 })
 				.unsqueeze(0)
 				.to(_device_type, _scalar_type, false, false, torch::MemoryFormat::Contiguous)
 				.div(255)
-		).select(0, 0);
-		xywh2xyxy(result.slice(1, 0, 4), size.height, size.width);
-		if (scaled)
-			scale_coords(result.slice(1, 0, 4), ratio, left, right, top, bottom);
+		);
+		xywh2xyxy(result, _accepted_size);
+		scaler.rescale(result, original_size);
 
 		auto [boxes, scores, classes] = non_max_suppression(
-			std::move(result),
+			result.select(0, 0),
 			score_threshold,
 			iou_threshold,
 			inclusions,
 			exclusions,
-			std::max(size.height, size.width),
+			std::max(original_size.height, original_size.width),
 			torch::kCPU,
 			torch::kFloat32
 		);

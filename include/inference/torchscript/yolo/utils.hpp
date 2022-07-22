@@ -17,62 +17,6 @@ namespace inference::torchscript::yolo
 {
 
 [[nodiscard]]
-static std::tuple<cv::Mat, double, size_t, size_t, size_t, size_t> letterbox(
-	cv::Mat image,
-	const cv::Size & new_size,
-	bool scale_up,
-	const cv::Scalar & padded_colour
-)
-{
-	auto image_size = image.size();
-	auto ratio = std::min(double(new_size.width) / image_size.width, double(new_size.height) / image_size.height);
-
-	cv::Mat tmp;
-	if (ratio < 1.0 || (ratio > 1.0 && scale_up))
-	{
-		cv::resize(
-			image,
-			tmp,
-			{ image_size.width * ratio, image_size.height * ratio },
-			ratio,
-			ratio,
-			cv::InterpolationFlags::INTER_LINEAR
-		);
-		image = std::move(tmp);
-	}
-	else
-		ratio = 1.0;
-
-	image_size = image.size();
-
-	size_t width_pad = new_size.width - image_size.width, height_pad = new_size.height - image_size.height;
-	size_t left = width_pad >> 1, right = width_pad - left;
-	size_t top = height_pad >> 1, bottom = height_pad - top;
-	cv::copyMakeBorder(image, tmp, top, bottom, left, right, cv::BorderTypes::BORDER_CONSTANT, padded_colour);
-
-	return { std::move(tmp), ratio, left, right, top, bottom };
-}
-
-static void xywh2xyxy(torch::Tensor boxes, int64_t height, int64_t width)
-{
-	auto sx = boxes.select(1, 2) / 2, sy = boxes.select(1, 3) / 2;
-	auto cx = boxes.select(1, 0), cy = boxes.select(1, 1);
-	boxes.select(1, 2) = (cx + sx).clamp(0, width);
-	boxes.select(1, 3) = (cy + sy).clamp(0, height);
-	boxes.select(1, 0) = (cx - sx).clamp(0, width);
-	boxes.select(1, 1) = (cy - sy).clamp(0, height);
-}
-
-static void scale_coords(torch::Tensor boxes, double ratio, int64_t left, int64_t right, int64_t top, int64_t bottom)
-{
-	boxes.select(1, 0) -= left;
-	boxes.select(1, 1) -= top;
-	boxes.select(1, 2) -= right;
-	boxes.select(1, 3) -= bottom;
-	boxes /= ratio;
-}
-
-[[nodiscard]]
 inline static std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> empty_result(
 	torch::DeviceType device_type,
 	torch::ScalarType scores_scalar_type

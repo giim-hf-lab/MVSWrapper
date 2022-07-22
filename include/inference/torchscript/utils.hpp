@@ -1,0 +1,107 @@
+#ifndef __INFERENCE_TORCHSCRIPT_UTILS_HPP__
+#define __INFERENCE_TORCHSCRIPT_UTILS_HPP__
+
+#include <cstddef>
+#include <cstdint>
+
+#include <algorithm>
+#include <tuple>
+
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <torch/script.h>
+
+namespace inference::torchscript
+{
+
+static void xywh2xyxy(const torch::Tensor & boxes, const cv::Size & size)
+{
+	auto sx = boxes.select(2, 2) / 2;
+	auto sy = boxes.select(2, 3) / 2;
+	auto cx = boxes.select(2, 0);
+	auto cy = boxes.select(2, 1);
+	boxes.select(2, 2) = (cx + sx).clamp(0, size.width);
+	boxes.select(2, 3) = (cy + sy).clamp(0, size.height);
+	boxes.select(2, 0) = (cx - sx).clamp(0, size.width);
+	boxes.select(2, 1) = (cy - sy).clamp(0, size.height);
+}
+
+class transformation final
+{
+	double ratio;
+	int64_t left, right, top, bottom;
+
+	inline transformation() noexcept : ratio(0.0) {}
+
+	inline transformation(
+		double ratio,
+		int64_t left,
+		int64_t right,
+		int64_t top,
+		int64_t bottom
+	) noexcept : ratio(ratio), left(left), right(right), top(top), bottom(bottom) {}
+public:
+	[[nodiscard]]
+	static transformation letterbox(
+		cv::Mat & image,
+		const cv::Size & new_size,
+		bool scale_up,
+		const cv::Scalar & padded_colour
+	)
+	{
+		auto image_size = image.size();
+		if (image_size == new_size)
+			return {};
+
+		auto ratio = std::min(double(new_size.width) / image_size.width, double(new_size.height) / image_size.height);
+		cv::Mat resized;
+		if (ratio < 1.0 || (ratio > 1.0 && scale_up))
+		{
+			image_size.height *= ratio;
+			image_size.width *= ratio;
+			image_size.height = std::clamp(image_size.height, 0, new_size.height);
+			image_size.width = std::clamp(image_size.width, 0, new_size.width);
+
+			cv::resize(image, resized, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
+		}
+		else
+		{
+			ratio = 1.0;
+			resized = std::move(image);
+		}
+
+		size_t width_pad = new_size.width - image_size.width, height_pad = new_size.height - image_size.height;
+		size_t left = width_pad >> 1, right = width_pad - left;
+		size_t top = height_pad >> 1, bottom = height_pad - top;
+
+		cv::copyMakeBorder(resized, image, top, bottom, left, right, cv::BorderTypes::BORDER_CONSTANT, padded_colour);
+
+		return { ratio, left, right, top, bottom };
+	}
+
+	~transformation() noexcept = default;
+
+	transformation(const transformation &) noexcept = default;
+	transformation(transformation &&) noexcept = default;
+
+	transformation & operator=(const transformation &) & noexcept = default;
+	transformation & operator=(transformation &&) & noexcept = default;
+
+	transformation & operator=(const transformation &) && noexcept = delete;
+	transformation & operator=(transformation &&) && noexcept = delete;
+
+	void rescale(const torch::Tensor & boxes, const cv::Size & size) const
+	{
+		if (ratio == 0.0)
+			return;
+
+		boxes.select(2, 0) = ((boxes.select(2, 0) - left) / ratio).clamp(0, size.width);
+		boxes.select(2, 1) = ((boxes.select(2, 1) - top) / ratio).clamp(0, size.height);
+		boxes.select(2, 2) = ((boxes.select(2, 2) - right) / ratio).clamp(0, size.width);
+		boxes.select(2, 3) = ((boxes.select(2, 3) - bottom) / ratio).clamp(0, size.width);
+	}
+};
+
+}
+
+#endif
