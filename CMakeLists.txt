@@ -21,17 +21,21 @@ include(spdlog)
 
 include(common)
 
-add_executable(detect src/detect.cpp)
-target_include_directories(detect PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/include
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+link_libraries(
+	argparse::argparse
+	fmt::fmt
+	spdlog::spdlog
+)
+
+add_executable(images src/images.cpp)
+target_include_directories(images PRIVATE
 	${TORCH_INCLUDE_DIRS}
 	${TorchVision_INCLUDE_DIR}
 )
-target_link_libraries(detect PRIVATE
-	argparse::argparse
-	fmt::fmt
+target_link_libraries(images PRIVATE
 	mio::mio
-	spdlog::spdlog
 	opencv_core
 	opencv_highgui
 	opencv_imgcodecs
