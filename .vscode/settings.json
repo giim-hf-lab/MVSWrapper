@@ -6,6 +6,7 @@
   "C_Cpp.default.cppStandard": "c++20",
   "C_Cpp.default.includePath": [
     "/usr/include/opencv4",
+    "${workspaceFolder}/dist/onnxruntime/include",
     "${workspaceFolder}/dist/torch/include",
     "${workspaceFolder}/dist/torchvision/include",
     "${workspaceFolder}/externals/argparse/include",

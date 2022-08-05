@@ -25,7 +25,7 @@ namespace inference::torchscript::yolo
 
 class v5 final
 {
-	mutable torch::jit::Module _model;
+	torch::jit::Module _model;
 	torch::DeviceType _device_type;
 	torch::ScalarType _scalar_type;
 	cv::Size _accepted_size;
@@ -33,7 +33,7 @@ class v5 final
 	cv::Scalar _padded_colour;
 
 	[[nodiscard]]
-	inline auto compute(torch::Tensor tensor) const &
+	inline auto compute(torch::Tensor tensor) &
 	{
 		return _model({ std::move(tensor) }).toTuple()->elements()[0].toTensor();
 	}
@@ -76,7 +76,7 @@ public:
 		double iou_threshold,
 		const torch::Tensor & inclusions,
 		const torch::Tensor & exclusions
-	) const &
+	) &
 	{
 		auto original_size = image.size();
 		auto scaler = transformation::letterbox(image, _accepted_size, _scale_up, _padded_colour);
@@ -114,7 +114,7 @@ public:
 		double iou_threshold,
 		const std::vector<int64_t> & inclusions,
 		const std::vector<int64_t> & exclusions
-	) const &
+	) &
 	{
 		auto option = torch::TensorOptions(_device_type)
 			.dtype(torch::kInt64)

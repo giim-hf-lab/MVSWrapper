@@ -7,7 +7,7 @@ In the current status, however, the CMakeLists.txt is just for experimental use,
 ## TODO
 
 - LibTorch
-  - [x] YOLOv5
+  - [ ] YOLOv5
 - ONNX Runtime
   - [ ] YOLOv5
 - PaddlePaddle

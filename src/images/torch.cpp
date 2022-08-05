@@ -57,10 +57,6 @@ int main(int argc, char * argv[])
 		.scan<'u', size_t>()
 		.default_value(size_t(2))
 		.help("The log level (in numeric representation) of the application.");
-	parser.add_argument("-S", "--show")
-		.default_value(false)
-		.implicit_value(true)
-		.help("Do not show the image at intermediate stages.");
 
 	parser.parse_args(argc, argv);
 

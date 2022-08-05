@@ -17,6 +17,12 @@
 [submodule "externals/torch/vision"]
 	path = externals/torch/vision
 	url = git@github.com:pytorch/vision.git
+	ignore = dirty
 [submodule "externals/torch/pytorch"]
 	path = externals/torch/pytorch
 	url = git@github.com:pytorch/pytorch.git
+	ignore = dirty
+[submodule "externals/onnxruntime"]
+	path = externals/onnxruntime
+	url = git@github.com:microsoft/onnxruntime.git
+	ignore = dirty
