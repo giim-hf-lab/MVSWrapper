@@ -79,7 +79,7 @@ public:
 	) &
 	{
 		auto original_size = image.size();
-		auto scaler = transformation::letterbox(image, _accepted_size, _scale_up, _padded_colour);
+		auto scaler = transformation<torch::Tensor>::letterbox(image, _accepted_size, _scale_up, _padded_colour);
 		cv::cvtColor(image, image, cv::ColorConversionCodes::COLOR_BGR2RGB);
 
 		torch::InferenceMode guard(true);
