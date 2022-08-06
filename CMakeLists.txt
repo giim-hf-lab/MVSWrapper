@@ -2,10 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 project(YOLORunner CXX C)
 
 find_package(OpenCV REQUIRED)
-find_package(PkgConfig REQUIRED)
 
 list(APPEND CMAKE_PREFIX_PATH
-	"${CMAKE_CURRENT_SOURCE_DIR}/dist/onnxruntime"
 	"${CMAKE_CURRENT_SOURCE_DIR}/dist/torch"
 	"${CMAKE_CURRENT_SOURCE_DIR}/dist/torchvision"
 )
@@ -13,10 +11,10 @@ list(APPEND CMAKE_PREFIX_PATH
 find_package(Torch REQUIRED)
 find_package(TorchVision REQUIRED)
 
-pkg_check_modules(onnxruntime REQUIRED libonnxruntime)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
+
+include(onnxruntime)
 
 include(argparse)
 include(fmt)
@@ -51,13 +49,14 @@ target_link_libraries(images_torch PRIVATE
 
 add_executable(images_ort src/images/ort.cpp)
 target_include_directories(images_ort PRIVATE
-	${onnxruntime_INCLUDE_DIRS}
+	"${CMAKE_CURRENT_SOURCE_DIR}/externals/onnxruntime/include"
 )
+add_dependencies(images_ort onnxruntime_providers_cuda)
 target_link_libraries(images_ort PRIVATE
 	opencv_core
 	opencv_highgui
 	opencv_imgcodecs
 	opencv_imgproc
 
-	${onnxruntime_LIBRARIES}
+	onnxruntime
 )
