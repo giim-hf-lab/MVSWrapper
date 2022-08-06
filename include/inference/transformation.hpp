@@ -5,17 +5,17 @@
 #include <cstdint>
 
 #include <algorithm>
+#include <type_traits>
 #include <utility>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "../std.hpp"
-
 namespace inference
 {
 
-template<std::regular_type Tensor>
+template<typename Tensor>
+	requires std::is_object_v<Tensor>
 class transformation final
 {
 	double ratio;

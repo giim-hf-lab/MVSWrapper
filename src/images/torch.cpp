@@ -114,13 +114,13 @@ int main(int argc, char * argv[])
 	torch::jit::setGraphExecutorOptimize(false);
 	torch::jit::setTensorExprFuserEnabled(false);
 	inference::torchscript::yolo::v5 model(
-		parser.get<std::string>("-m"),
-		torch::kCUDA,
-		torch::kFloat16,
 		std::move(size),
 		false,
 		// https://github.com/ultralytics/yolov5/blob/v6.1/utils/augmentations.py#L91
-		{ 114, 114, 114 }
+		{ 114, 114, 114 },
+		parser.get<std::string>("-m"),
+		torch::kCUDA,
+		torch::kFloat16
 	);
 
 	cv::Mat image = cv::imread(parser.get<std::string>("-i"), cv::ImreadModes::IMREAD_COLOR);

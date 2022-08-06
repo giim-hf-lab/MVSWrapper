@@ -12,8 +12,6 @@
 
 #include <mio/mmap.hpp>
 
-#include "./std.hpp"
-
 namespace inference
 {
 
@@ -24,7 +22,7 @@ class labels_mapper final
 
 	labels_mapper() = default;
 public:
-	static labels_mapper from_file(const std::path_like auto & labels_path)
+	static labels_mapper from_file(const std::string & labels_path)
 	{
 		labels_mapper ret;
 		ret._indices.max_load_factor(1);

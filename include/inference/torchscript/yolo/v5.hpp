@@ -16,7 +16,6 @@
 #include <opencv2/imgproc.hpp>
 #include <torch/script.h>
 
-#include "../../../std.hpp"
 #include "../utils.hpp"
 #include "./utils.hpp"
 
@@ -39,12 +38,12 @@ class v5 final
 	}
 public:
 	v5(
-		const std::path_like auto & model_path,
-		torch::DeviceType device_type,
-		torch::ScalarType scalar_type,
 		cv::Size accepted_size,
 		bool scale_up,
-		cv::Scalar padded_colour
+		cv::Scalar padded_colour,
+		const std::string & model_path,
+		torch::DeviceType device_type,
+		torch::ScalarType scalar_type
 	) :
 		_model(torch::jit::load(model_path)),
 		_device_type(device_type),
