@@ -9,6 +9,4 @@ In the current status, however, the CMakeLists.txt is just for experimental use,
 - LibTorch
   - [ ] YOLOv5
 - ONNX Runtime
-  - [ ] YOLOv5
-- PaddlePaddle
   - [ ] OCR
