@@ -10,6 +10,7 @@
     "/usr/local/include",
     "${workspaceFolder}/dist/ort/include",
     "${workspaceFolder}/dist/torch/include",
+    "${workspaceFolder}/dist/torch/include/torch/csrc/api/include",
     "${workspaceFolder}/dist/torchvision/include",
     "${workspaceFolder}/externals/argparse/include",
     "${workspaceFolder}/externals/fmt/include",

@@ -16,7 +16,6 @@
 #include <torch/csrc/jit/runtime/graph_executor.h>
 
 #include "inference/torchscript/yolo/v5.hpp"
-#include "inference/labels.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -29,17 +28,9 @@ int main(int argc, char * argv[])
 		.nargs(argparse::nargs_pattern::at_least_one)
 		.append()
 		.help("The list of labels to be included in the output.");
-	parser.add_argument("-l", "--labels-path")
-		.required()
-		.help("Corresponding list of labels for the given model.");
 	parser.add_argument("-m", "-w", "--model", "--weight")
 		.required()
 		.help("The TorchScript model file to load.");
-	parser.add_argument("-s", "--accepted-size")
-		.required()
-		.nargs(1, 2)
-		.scan<'u', size_t>()
-		.help("The accepted target size of the model input (either [width] [height] or [size]).");
 	parser.add_argument("-X", "--excluded-labels")
 		.nargs(argparse::nargs_pattern::at_least_one)
 		.append()
@@ -63,75 +54,31 @@ int main(int argc, char * argv[])
 	spdlog::set_pattern("[%Y-%m-%d %H:%M:%S %z (%l)] (thread %t) <%n> %v");
 	spdlog::set_level(static_cast<spdlog::level::level_enum>(parser.get<size_t>("-L")));
 
-	auto size_vec = parser.get<std::vector<size_t>>("-s");
-	cv::Size size;
-	if (size_vec.size() == 1)
-		size = { size_vec[0], size_vec[0] };
-	else if (size_vec.size() == 2)
-		size = { size_vec[0], size_vec[1] };
-	else
-	[[unlikely]]
-	{
-		SPDLOG_ERROR("Invalid image size bypassed argument checks.");
-		return 1;
-	}
-	SPDLOG_INFO("Accepted image size set to {}x{}.", size.width, size.height);
-
-	auto labels_mapper = inference::labels_mapper::from_file(parser.get<std::string>("-l"));
-	SPDLOG_INFO("Loaded {} labels.", labels_mapper.size());
-
 	auto included_labels = parser.get<std::vector<std::string>>("-I");
 	SPDLOG_INFO("Included labels: [ {} ].", fmt::join(included_labels, " , "));
-	std::vector<int64_t> included_indices;
-	if (auto size = included_labels.size(); size)
-	{
-		included_indices.reserve(included_labels.size());
-		for (const auto & label : included_labels)
-			included_indices.emplace_back(labels_mapper.at(label));
-		std::ranges::sort(included_indices);
-		auto trim_ranges = std::ranges::unique(included_indices);
-		included_indices.erase(trim_ranges.begin(), trim_ranges.end());
-	}
-	SPDLOG_INFO("Included labels (indices): [ {} ].", fmt::join(included_indices, " , "));
 
 	auto excluded_labels = parser.get<std::vector<std::string>>("-X");
 	SPDLOG_INFO("Excluded labels: [ {} ].", fmt::join(excluded_labels, " , "));
-	std::vector<int64_t> excluded_indices;
-	if (auto size = excluded_labels.size(); size)
-	{
-		excluded_indices.reserve(excluded_labels.size());
-		for (const auto & label : excluded_labels)
-			excluded_indices.emplace_back(labels_mapper.at(label));
-		std::ranges::sort(excluded_indices);
-		auto trim_ranges = std::ranges::unique(excluded_indices);
-		excluded_indices.erase(trim_ranges.begin(), trim_ranges.end());
-	}
-	SPDLOG_INFO("Excluded labels (indices): [ {} ].", fmt::join(excluded_indices, " , "));
+
+	auto image = cv::imread(parser.get<std::string>("-i"), cv::ImreadModes::IMREAD_COLOR);
+	auto size = image.size();
+	SPDLOG_INFO("Input image size is {}x{}.", size.width, size.height);
+
+	auto conf_threshold = parser.get<double>("--conf-threshold"), iou_threshold = parser.get<double>("--iou-threshold");
+	SPDLOG_INFO("Thresholds set to conf={:.3f} and iou={:.3f}.", conf_threshold, iou_threshold);
 
 	torch::jit::FusionStrategy static_strategy { { torch::jit::FusionBehavior::STATIC, 1 } };
 	torch::jit::getProfilingMode() = false;
 	torch::jit::setFusionStrategy(static_strategy);
 	torch::jit::setGraphExecutorOptimize(false);
 	torch::jit::setTensorExprFuserEnabled(false);
-	inference::torchscript::yolo::v5 model(
-		std::move(size),
-		false,
-		// https://github.com/ultralytics/yolov5/blob/v6.1/utils/augmentations.py#L91
-		{ 114, 114, 114 },
-		parser.get<std::string>("-m"),
-		torch::kCUDA,
-		torch::kFloat16
-	);
+	inference::torchscript::yolo::v5 model(parser.get<std::string>("-m"), torch::kCUDA, torch::kFloat16, false);
+	model.warmup();
 
-	cv::Mat image = cv::imread(parser.get<std::string>("-i"), cv::ImreadModes::IMREAD_COLOR);
-	size = image.size();
-	SPDLOG_INFO("Input image size is {}x{}.", size.width, size.height);
-
-	auto conf_threshold = parser.get<double>("--conf-threshold"), iou_threshold = parser.get<double>("--iou-threshold");
-	SPDLOG_INFO("Thresholds set to conf={:.3f} and iou={:.3f}.", conf_threshold, iou_threshold);
+	auto filter = model.create_filter(included_labels, excluded_labels);
 
 	auto now = std::chrono::system_clock::now();
-	auto ret = model.infer_image(image, conf_threshold, iou_threshold, included_indices, excluded_indices);
+	auto ret = model.infer_image(image, conf_threshold, iou_threshold, filter);
 	SPDLOG_INFO(
 		"Time elapsed for inference: {:.3}",
 		std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
@@ -142,8 +89,8 @@ int main(int argc, char * argv[])
 	for (const auto & [label, score, min_coord, max_coord] : ret)
 	{
 		SPDLOG_INFO(
-			"label {}: {:.3f} [[{}, {}], [{}, {}]]",
-			labels_mapper.at(label),
+			"label <{}>: {:.3f} [[{}, {}], [{}, {}]]",
+			label,
 			score,
 			min_coord.x,
 			min_coord.y,
