@@ -15,7 +15,7 @@
 #include <torch/script.h>
 
 #include "../transformation.hpp"
-#include "./utils.hpp"
+#include "./nms.hpp"
 
 namespace inference::torchscript::yolo
 {
