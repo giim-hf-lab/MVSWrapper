@@ -26,3 +26,7 @@
 	path = externals/onnxruntime
 	url = git@github.com:microsoft/onnxruntime.git
 	ignore = dirty
+[submodule "externals/json"]
+	path = externals/json
+	url = git@github.com:nlohmann/json.git
+	ignore = dirty

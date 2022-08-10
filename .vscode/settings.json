@@ -13,6 +13,7 @@
     "${workspaceFolder}/dist/torchvision/include",
     "${workspaceFolder}/externals/argparse/include",
     "${workspaceFolder}/externals/fmt/include",
+    "${workspaceFolder}/externals/json/include",
     "${workspaceFolder}/externals/mio/include",
     "${workspaceFolder}/externals/spdlog/include",
     "${workspaceFolder}/include"

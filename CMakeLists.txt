@@ -21,6 +21,7 @@ find_package(OpenCV REQUIRED)
 
 include(argparse)
 include(fmt)
+include(json)
 include(mio)
 include(spdlog)
 
@@ -31,6 +32,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 link_libraries(
 	argparse::argparse
 	fmt::fmt
+	nlohmann_json::nlohmann_json
 	mio::mio
 	spdlog::spdlog
 )
