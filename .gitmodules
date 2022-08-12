@@ -30,3 +30,6 @@
 	path = externals/json
 	url = git@github.com:nlohmann/json.git
 	ignore = dirty
+[submodule "private"]
+	path = private
+	url = ../private-inference.git
