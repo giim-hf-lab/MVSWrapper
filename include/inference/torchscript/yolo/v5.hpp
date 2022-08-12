@@ -84,7 +84,8 @@ class v5 final
 	}
 
 	[[nodiscard]]
-	auto labels_to_indices(const std::vector<std::string> & labels) const &
+	[[using gnu : always_inline]]
+	inline auto labels_to_indices(const std::vector<std::string> & labels) const &
 	{
 		std::vector<int64_t> indicies;
 		if (auto size = labels.size(); size)
