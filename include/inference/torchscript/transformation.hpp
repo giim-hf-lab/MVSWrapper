@@ -34,7 +34,7 @@ static void xywh2xyxy(const torch::Tensor & boxes, const cv::Size & size)
 }
 
 template<>
-void transformation<torch::Tensor>::rescale(torch::Tensor & boxes, const cv::Size & size) const
+void transformation::rescale<torch::Tensor>(torch::Tensor & boxes, const cv::Size & size) const
 {
 	if (ratio == 0.0)
 		return;

@@ -14,8 +14,6 @@
 namespace inference
 {
 
-template<typename Tensor>
-	requires std::is_object_v<Tensor>
 class transformation final
 {
 	double ratio;
@@ -80,6 +78,8 @@ public:
 	transformation & operator=(const transformation &) && noexcept = delete;
 	transformation & operator=(transformation &&) && noexcept = delete;
 
+	template<typename Tensor>
+		requires std::is_object_v<Tensor>
 	void rescale(Tensor & boxes, const cv::Size & size) const;
 };
 

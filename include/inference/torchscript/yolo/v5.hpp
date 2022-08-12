@@ -20,6 +20,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <torch/script.h>
+#include <torch/torch.h>
 
 #include "../filter.hpp"
 #include "../transformation.hpp"
@@ -137,7 +138,7 @@ public:
 	auto infer_image(cv::Mat image, double score_threshold, double iou_threshold, const filter & label_filter) &
 	{
 		auto original_size = image.size();
-		auto scaler = transformation<torch::Tensor>::letterbox(image, _image_size, _scale_up, _padded_colour);
+		auto scaler = transformation::letterbox(image, _image_size, _scale_up, _padded_colour);
 		cv::cvtColor(image, image, cv::ColorConversionCodes::COLOR_BGR2RGB);
 
 		torch::InferenceMode guard(true);
@@ -162,9 +163,9 @@ public:
 			torch::kCPU,
 			torch::kFloat32
 		);
-		const auto * boxes_ptr = boxes.data<int64_t>();
-		const auto * scores_ptr = scores.data<float>();
-		const auto * classes_ptr = classes.data<int64_t>();
+		const auto * boxes_ptr = boxes.data_ptr<int64_t>();
+		const auto * scores_ptr = scores.data_ptr<float>();
+		const auto * classes_ptr = classes.data_ptr<int64_t>();
 		std::vector<std::tuple<std::string, float, cv::Point, cv::Point>> ret;
 		ret.reserve(results_left);
 		for (size_t i = 0; i < results_left; ++i)
