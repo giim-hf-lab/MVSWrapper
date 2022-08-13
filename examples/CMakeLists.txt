@@ -13,6 +13,7 @@ target_link_libraries(detect PRIVATE
 	opencv_highgui
 	opencv_imgcodecs
 	opencv_imgproc
+	opencv_videoio
 
 	${TORCH_LIBRARIES}
 	TorchVision::TorchVision
