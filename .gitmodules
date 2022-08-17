@@ -33,3 +33,6 @@
 [submodule "private"]
 	path = private
 	url = ../private-inference.git
+[submodule "externals/ctre"]
+	path = externals/ctre
+	url = git@github.com:hanickadot/compile-time-regular-expressions.git

@@ -13,10 +13,12 @@
     "${workspaceFolder}/dist/torch/include/torch/csrc/api/include",
     "${workspaceFolder}/dist/torchvision/include",
     "${workspaceFolder}/externals/argparse/include",
+    "${workspaceFolder}/externals/ctre/include",
     "${workspaceFolder}/externals/fmt/include",
     "${workspaceFolder}/externals/json/include",
     "${workspaceFolder}/externals/mio/include",
     "${workspaceFolder}/externals/spdlog/include",
-    "${workspaceFolder}/include"
+    "${workspaceFolder}/include",
+    "${workspaceFolder}/private/include"
   ]
 }

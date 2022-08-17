@@ -20,6 +20,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 find_package(OpenCV REQUIRED)
 
 include(argparse)
+include(ctre)
 include(fmt)
 include(json)
 include(mio)
