@@ -8,7 +8,10 @@ mkdir -p "${install_prefix}"
 
 ort_path="$(realpath ${install_prefix}/ort)"
 
-cmake --toolchain "${PWD}/toolchains/${1}.cmake" -G "${generator}" -B build/ort \
+cmake --toolchain "${PWD}/toolchains/${1}/gcc-11.cmake" -G "${generator}" -B build/ort -Wno-dev \
+	-DCMAKE_C_STANDARD=17 \
+	-DCMAKE_CXX_STANDARD=17 \
+	-DCMAKE_CUDA_STANDARD=17 \
 	-DCMAKE_INSTALL_PREFIX="$ort_path" \
 	-Donnxruntime_BUILD_SHARED_LIB=ON \
 	-Donnxruntime_USE_CUDA=ON \
@@ -18,14 +21,16 @@ cmake --toolchain "${PWD}/toolchains/${1}.cmake" -G "${generator}" -B build/ort 
 	-Donnxruntime_USE_AVX512=ON \
 	-Donnxruntime_ENABLE_LTO=ON \
 	-Donnxruntime_USE_NCCL=ON \
-	-Donnxruntime_USE_MPI=ON \
 	externals/onnxruntime/cmake
 
-cmake --build build/ort --target install
+cmake --build build/ort --config Release --target install
 
 torch_path="$(realpath ${install_prefix}/torch)"
 
-cmake --toolchain "${PWD}/toolchains/${1}.cmake" -G "${generator}" -B build/torch \
+cmake --toolchain "${PWD}/toolchains/${1}/gcc-11.cmake" -G "${generator}" -B build/torch -Wno-dev \
+	-DCMAKE_C_STANDARD=17 \
+	-DCMAKE_CXX_STANDARD=17 \
+	-DCMAKE_CUDA_STANDARD=17 \
 	-DCMAKE_INSTALL_PREFIX="$torch_path" \
 	-DATEN_NO_TEST=ON \
 	-DBUILD_PYTHON=OFF \
@@ -38,17 +43,37 @@ cmake --toolchain "${PWD}/toolchains/${1}.cmake" -G "${generator}" -B build/torc
 	-DUSE_C10D_NCCL=ON \
 	-DUSE_NCCL_WITH_UCC=ON \
 	-DUSE_LITE_INTERPRETER_PROFILER=OFF \
-	-DUSE_C10D_MPI=ON \
+	-DUSE_STATIC_MKL=ON \
+	-DUSE_DISTRIBUTED=OFF \
 	externals/torch/pytorch
 
-cmake --build build/torch --target install
+cmake --build build/torch --config Release --target install
 
 torchvision_path="$(realpath ${install_prefix}/torchvision)"
 
-cmake --toolchain "${PWD}/toolchains/${1}.cmake" -G "${generator}" -B build/torchvision \
+cmake --toolchain "${PWD}/toolchains/${1}/gcc-11.cmake" -G "${generator}" -B build/torchvision -Wno-dev \
+	-DCMAKE_C_STANDARD=17 \
+	-DCMAKE_CXX_STANDARD=17 \
+	-DCMAKE_CUDA_STANDARD=17 \
 	-DCMAKE_INSTALL_PREFIX="$torchvision_path" \
 	-DCMAKE_PREFIX_PATH="$torch_path" \
 	-DWITH_CUDA=ON \
 	externals/torch/vision
 
-cmake --build build/torchvision --target install
+cmake --build build/torchvision --config Release --target install
+
+paddle_path="$(realpath build/paddle)"
+
+cmake --toolchain "${PWD}/toolchains/${1}/gcc-9.cmake" -G "Unix Makefiles" -B build/paddle -Wno-dev \
+	-DCMAKE_C_STANDARD=17 \
+	-DCMAKE_CXX_STANDARD=17 \
+	-DCMAKE_CXX_FLAGS="-Wno-pessimizing-move -Wno-deprecated-copy" \
+	-DCMAKE_CUDA_STANDARD=17 \
+	-DCMAKE_INSTALL_PREFIX="$paddle_path" \
+	-DWITH_GPU=ON \
+	-DWITH_AVX=ON \
+	-DWITH_PYTHON=OFF \
+	-DON_INFER=ON \
+	externals/Paddle
+
+cmake --build build/paddle --config Release --target install -- -j $(nproc)

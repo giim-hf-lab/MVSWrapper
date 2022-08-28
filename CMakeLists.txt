@@ -24,6 +24,7 @@ include(ctre)
 include(fmt)
 include(json)
 include(mio)
+include(paddle)
 include(spdlog)
 
 include(common)

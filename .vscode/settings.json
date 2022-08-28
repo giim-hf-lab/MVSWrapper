@@ -8,6 +8,7 @@
     "/usr/include",
     "/usr/include/opencv4",
     "/usr/local/include",
+    "${workspaceFolder}/build/paddle/paddle_inference_install_dir/paddle/include",
     "${workspaceFolder}/dist/ort/include",
     "${workspaceFolder}/dist/torch/include",
     "${workspaceFolder}/dist/torch/include/torch/csrc/api/include",

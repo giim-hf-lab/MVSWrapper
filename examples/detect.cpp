@@ -128,7 +128,7 @@ int main(int argc, char * argv[])
 				cv::rectangle(frame, min_coord, max_coord, { 0, 0, 255 }, 1, cv::LineTypes::LINE_AA);
 
 			cv::imshow("main", frame);
-			if (cv::pollKey() == 0x1b)
+			if (cv::waitKey(1) == 0x1b)
 			{
 				SPDLOG_WARN("->  Current video processing stopped as requested.");
 				break;

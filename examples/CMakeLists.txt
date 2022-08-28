@@ -1,8 +1,4 @@
 add_executable(detect detect.cpp)
-target_include_directories(detect PRIVATE
-	${TORCH_INCLUDE_DIRS}
-	${TorchVision_INCLUDE_DIR}
-)
 target_link_libraries(detect PRIVATE
 	argparse::argparse
 	fmt::fmt
@@ -15,6 +11,15 @@ target_link_libraries(detect PRIVATE
 	opencv_imgproc
 	opencv_videoio
 
-	${TORCH_LIBRARIES}
+	torch
 	TorchVision::TorchVision
+)
+
+add_executable(ocr ocr.cpp)
+target_link_libraries(ocr PRIVATE
+	argparse::argparse
+	fmt::fmt
+	spdlog::spdlog
+
+	paddle::inference::static
 )

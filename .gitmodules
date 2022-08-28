@@ -1,3 +1,7 @@
+[submodule "private"]
+	path = private
+	url = ../private-inference.git
+	branch = main
 [submodule "externals/fmt"]
 	path = externals/fmt
 	url = git@github.com:fmtlib/fmt.git
@@ -30,9 +34,11 @@
 	path = externals/json
 	url = git@github.com:nlohmann/json.git
 	ignore = dirty
-[submodule "private"]
-	path = private
-	url = ../private-inference.git
 [submodule "externals/ctre"]
 	path = externals/ctre
 	url = git@github.com:hanickadot/compile-time-regular-expressions.git
+	ignore = dirty
+[submodule "externals/Paddle"]
+	path = externals/Paddle
+	url = git@github.com:PaddlePaddle/Paddle.git
+	ignore = dirty
