@@ -15,7 +15,7 @@
 #include <vector>
 
 #include <fmt/compile.h>
-#include <fmt/format.h>
+#include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <nlohmann/json.hpp>
 #include <opencv2/core.hpp>
@@ -54,6 +54,7 @@ class v5 final
 		// https://github.com/ultralytics/yolov5/blob/v6.1/export.py#L99-L100
 		const auto & config_str = extra_files_map["config.txt"];
 		if (config_str.empty())
+		[[unlikely]]
 			throw std::runtime_error("the model doesn't contain the required metadata");
 		auto config = nlohmann::json::parse(config_str);
 
@@ -64,11 +65,13 @@ class v5 final
 		size_t index = 0;
 		for (auto & label : parsed_labels)
 			if (auto [it, emplaced] = _labels_indicies.try_emplace(std::move(label), index); emplaced)
+			[[likely]]
 			{
 				_labels.emplace_back(it->first);
 				++index;
 			}
 			else
+			[[unlikely]]
 				throw std::runtime_error(fmt::format(FMT_COMPILE("duplicate label <{}>"), it->first));
 		_labels.shrink_to_fit();
 		_labels_indicies.rehash(index);
@@ -76,8 +79,10 @@ class v5 final
 		// https://github.com/ultralytics/yolov5/blob/v6.1/export.py#L457
 		auto st = config["shape"].get<std::tuple<size_t, size_t, size_t, size_t>>();
 		if (const auto & [N, C, H, W] = st; N == 1 && C == 3)
+		[[likely]]
 			_image_size = { H, W };
 		else
+		[[unlikely]]
 			throw std::runtime_error(fmt::format(FMT_COMPILE("input shape ({}) unrecognised"), fmt::join(st, ", ")));
 
 		ret.eval();
@@ -119,10 +124,10 @@ public:
 		_model(init_model(model_path)) {}
 
 	v5(const v5 &) = delete;
-	v5(v5 &&) noexcept = delete;
+	v5(v5 &&) noexcept = default;
 
 	v5 & operator=(const v5 &) = delete;
-	v5 & operator=(v5 &&) noexcept = delete;
+	v5 & operator=(v5 &&) = delete;
 
 	[[nodiscard]]
 	filter create_filter(const std::vector<std::string> & inclusion, const std::vector<std::string> & exclusion) const &

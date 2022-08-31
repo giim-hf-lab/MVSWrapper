@@ -42,3 +42,6 @@
 	path = externals/Paddle
 	url = git@github.com:PaddlePaddle/Paddle.git
 	ignore = dirty
+[submodule "externals/Clipper2"]
+	path = externals/Clipper2
+	url = git@github.com:AngusJohnson/Clipper2.git

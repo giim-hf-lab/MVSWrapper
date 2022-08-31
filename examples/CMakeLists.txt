@@ -21,5 +21,11 @@ target_link_libraries(ocr PRIVATE
 	fmt::fmt
 	spdlog::spdlog
 
-	paddle::inference::static
+	opencv_core
+	opencv_highgui
+	opencv_imgcodecs
+	opencv_imgproc
+	opencv_videoio
+
+	paddle::inference
 )

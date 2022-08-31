@@ -42,7 +42,6 @@ public:
 			return {};
 
 		auto ratio = std::min(double(new_size.width) / image_size.width, double(new_size.height) / image_size.height);
-		cv::Mat resized;
 		if (ratio < 1.0 || (ratio > 1.0 && scale_up))
 		{
 			image_size.height *= ratio;
@@ -50,21 +49,39 @@ public:
 			image_size.height = std::clamp(image_size.height, 0, new_size.height);
 			image_size.width = std::clamp(image_size.width, 0, new_size.width);
 
-			cv::resize(image, resized, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
+			cv::resize(image, image, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
 		}
 		else
-		{
 			ratio = 1.0;
-			resized = std::move(image);
-		}
 
 		size_t width_pad = new_size.width - image_size.width, height_pad = new_size.height - image_size.height;
 		size_t left = width_pad >> 1, right = width_pad - left;
 		size_t top = height_pad >> 1, bottom = height_pad - top;
 
-		cv::copyMakeBorder(resized, image, top, bottom, left, right, cv::BorderTypes::BORDER_CONSTANT, padded_colour);
+		cv::copyMakeBorder(image, image, top, bottom, left, right, cv::BorderTypes::BORDER_CONSTANT, padded_colour);
 
 		return { ratio, left, right, top, bottom };
+	}
+
+	[[nodiscard]]
+	static transformation scale(cv::Mat & image, size_t max_side_length, bool max_side_as_max)
+	{
+		auto image_size = image.size();
+		double ratio;
+		if ((image_size.height > image_size.width) == max_side_as_max)
+		{
+			ratio = double(max_side_length) / image_size.height;
+			image_size.height = max_side_length;
+			image_size.width *= ratio;
+		}
+		else
+		{
+			ratio = double(max_side_length) / image_size.width;
+			image_size.width = max_side_length;
+			image_size.height *= ratio;
+		}
+		cv::resize(image, image, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
+		return { ratio, 0, 0, 0, 0 };
 	}
 
 	~transformation() noexcept = default;
