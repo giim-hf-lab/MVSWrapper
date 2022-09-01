@@ -88,6 +88,7 @@ int main(int argc, char * argv[])
 	for (const auto & image_path : parser.get<std::vector<std::string>>("-i"))
 	{
 		if (!std::filesystem::exists(image_path))
+		[[unlikely]]
 		{
 			SPDLOG_ERROR("Image {} does not exist.", image_path);
 			continue;

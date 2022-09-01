@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(YOLORunner CXX C)
 
+find_package(OpenMP REQUIRED)
+
 find_package(PkgConfig REQUIRED)
 
 list(APPEND CMAKE_PREFIX_PATH
@@ -20,11 +22,12 @@ set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 find_package(OpenCV REQUIRED)
 
 include(argparse)
+include(clipper)
 include(ctre)
 include(fmt)
 include(json)
+include(mimalloc)
 include(mio)
-include(paddle)
 include(spdlog)
 
 include(common)

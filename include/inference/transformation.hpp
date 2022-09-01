@@ -14,21 +14,11 @@
 namespace inference
 {
 
-class transformation final
+struct transformation final
 {
-	double ratio;
-	int64_t left, right, top, bottom;
+	const double ratio;
+	const int64_t left, right, top, bottom;
 
-	inline transformation() noexcept : ratio(0.0) {}
-
-	inline transformation(
-		double ratio,
-		int64_t left,
-		int64_t right,
-		int64_t top,
-		int64_t bottom
-	) noexcept : ratio(ratio), left(left), right(right), top(top), bottom(bottom) {}
-public:
 	[[nodiscard]]
 	static transformation letterbox(
 		cv::Mat & image,
@@ -64,40 +54,45 @@ public:
 	}
 
 	[[nodiscard]]
-	static transformation scale(cv::Mat & image, size_t max_side_length, bool max_side_as_max)
+	static transformation scale(cv::Mat & image, size_t side_length, bool side_length_as_max)
 	{
 		auto image_size = image.size();
 		double ratio;
-		if ((image_size.height > image_size.width) == max_side_as_max)
+		if ((image_size.height > image_size.width) == side_length_as_max)
 		{
-			ratio = double(max_side_length) / image_size.height;
-			image_size.height = max_side_length;
+			ratio = double(side_length) / image_size.height;
+			image_size.height = side_length;
 			image_size.width *= ratio;
 		}
 		else
 		{
-			ratio = double(max_side_length) / image_size.width;
-			image_size.width = max_side_length;
+			ratio = double(side_length) / image_size.width;
+			image_size.width = side_length;
 			image_size.height *= ratio;
 		}
 		cv::resize(image, image, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
-		return { ratio, 0, 0, 0, 0 };
+		return { ratio };
 	}
 
 	~transformation() noexcept = default;
 
 	transformation(const transformation &) noexcept = default;
-	transformation(transformation &&) noexcept = default;
+	transformation(transformation &&) = delete;
 
-	transformation & operator=(const transformation &) & noexcept = default;
-	transformation & operator=(transformation &&) & noexcept = default;
-
-	transformation & operator=(const transformation &) && noexcept = delete;
-	transformation & operator=(transformation &&) && noexcept = delete;
+	transformation & operator=(const transformation &) = delete;
+	transformation & operator=(transformation &&) = delete;
 
 	template<typename Tensor>
 		requires std::is_object_v<Tensor>
 	void rescale(Tensor & boxes, const cv::Size & size) const;
+private:
+	inline transformation(
+		double ratio = 0.0,
+		int64_t left = 0,
+		int64_t right = 0,
+		int64_t top = 0,
+		int64_t bottom = 0
+	) noexcept : ratio(ratio), left(left), right(right), top(top), bottom(bottom) {}
 };
 
 }

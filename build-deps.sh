@@ -61,19 +61,3 @@ cmake --toolchain "${PWD}/toolchains/${1}/gcc-11.cmake" -G "${generator}" -B bui
 	externals/torch/vision
 
 cmake --build build/torchvision --config Release --target install
-
-paddle_path="$(realpath build/paddle)"
-
-cmake --toolchain "${PWD}/toolchains/${1}/gcc-9.cmake" -G "Unix Makefiles" -B build/paddle -Wno-dev \
-	-DCMAKE_C_STANDARD=17 \
-	-DCMAKE_CXX_STANDARD=17 \
-	-DCMAKE_CXX_FLAGS="-Wno-pessimizing-move -Wno-deprecated-copy" \
-	-DCMAKE_CUDA_STANDARD=17 \
-	-DCMAKE_INSTALL_PREFIX="$paddle_path" \
-	-DWITH_GPU=ON \
-	-DWITH_AVX=ON \
-	-DWITH_PYTHON=OFF \
-	-DON_INFER=ON \
-	externals/Paddle
-
-cmake --build build/paddle --config Release --target install -- -j $(nproc)

@@ -43,7 +43,7 @@ class v5 final
 
 	[[nodiscard]]
 	[[using gnu : always_inline]]
-	inline auto init_model(const std::string & model_path) &
+	inline auto _init_model(const std::string & model_path) &
 	{
 		torch::InferenceMode guard(true);
 
@@ -121,7 +121,7 @@ public:
 		_scalar_type(scalar_type),
 		_labels(),
 		_labels_indicies(),
-		_model(init_model(model_path)) {}
+		_model(_init_model(model_path)) {}
 
 	v5(const v5 &) = delete;
 	v5(v5 &&) noexcept = default;
