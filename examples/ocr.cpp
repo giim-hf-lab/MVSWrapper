@@ -64,9 +64,38 @@ int main(int argc, char * argv[])
 
 		auto image = cv::imread(image_path);
 		auto now = std::chrono::system_clock::now();
-		auto detector_result = detector.infer_image(image, 960, true, 0.3, true, false, 0.6, 1.5, 4);
+		auto detector_results = detector.infer_image(image, 960, true, 0.3, true, false, 0.6, 1.5, 4);
 		SPDLOG_INFO(
-			"->  Inference time is {:.3}.",
+			"->  detector time is {:.3}.",
+			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
+		);
+
+		now = std::chrono::system_clock::now();
+		std::vector<cv::Mat> cropped_images;
+		cropped_images.reserve(detector_results.size());
+		for (const auto & detector_result : detector_results)
+		{
+			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/utility.cpp#L101-L154
+			auto & cropped_image = cropped_images.emplace_back();
+			auto & size = detector_result.size;
+			cv::Point2f vertices[4], upright_vertices[4] {
+				{ 0, size.height },
+				{ 0, 0 },
+				{ size.width, 0 },
+				{ size.width, size.height }
+			};
+			detector_result.points(vertices);
+			cv::warpPerspective(
+				image,
+				cropped_image,
+				cv::getPerspectiveTransform(vertices, upright_vertices),
+				size
+			);
+			if (size.height > size.width * 1.5)
+				cv::rotate(cropped_image, cropped_image, cv::RotateFlags::ROTATE_90_CLOCKWISE);
+		}
+		SPDLOG_INFO(
+			"->  detector result processing time is {:.3}.",
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
 		);
 	}
