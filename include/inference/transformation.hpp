@@ -21,56 +21,57 @@ struct transformation final
 
 	[[nodiscard]]
 	static transformation letterbox(
-		cv::Mat & image,
-		const cv::Size & new_size,
+		const cv::Mat & src,
+		cv::Mat & dest,
+		const cv::Size & dest_size,
 		bool scale_up,
 		const cv::Scalar & padded_colour
 	)
 	{
-		auto image_size = image.size();
-		if (image_size == new_size)
+		auto src_size = src.size();
+		if (src_size == dest_size)
 			return {};
 
-		auto ratio = std::min(double(new_size.width) / image_size.width, double(new_size.height) / image_size.height);
-		if (ratio < 1.0 || (ratio > 1.0 && scale_up))
+		auto ratio = std::min(double(dest_size.width) / src_size.width, double(dest_size.height) / src_size.height);
+		if (ratio < 1.0 or (ratio > 1.0 and scale_up))
 		{
-			image_size.height *= ratio;
-			image_size.width *= ratio;
-			image_size.height = std::clamp(image_size.height, 0, new_size.height);
-			image_size.width = std::clamp(image_size.width, 0, new_size.width);
+			src_size.height *= ratio;
+			src_size.width *= ratio;
+			src_size.height = std::clamp(src_size.height, 0, dest_size.height);
+			src_size.width = std::clamp(src_size.width, 0, dest_size.width);
 
-			cv::resize(image, image, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
+			cv::resize(src, dest, src_size);
 		}
 		else
 			ratio = 1.0;
 
-		size_t width_pad = new_size.width - image_size.width, height_pad = new_size.height - image_size.height;
+		size_t width_pad = dest_size.width - src_size.width, height_pad = dest_size.height - src_size.height;
 		size_t left = width_pad >> 1, right = width_pad - left;
 		size_t top = height_pad >> 1, bottom = height_pad - top;
 
-		cv::copyMakeBorder(image, image, top, bottom, left, right, cv::BorderTypes::BORDER_CONSTANT, padded_colour);
+		cv::copyMakeBorder(dest, dest, top, bottom, left, right, cv::BorderTypes::BORDER_CONSTANT, padded_colour);
 
 		return { ratio, left, right, top, bottom };
 	}
 
 	[[nodiscard]]
-	static transformation scale(cv::Mat & image, size_t side_length, bool side_length_as_max)
+	static transformation scale(const cv::Mat & src, cv::Mat & dest, size_t side_length, bool side_length_as_max)
 	{
-		auto image_size = image.size();
+		auto src_size = src.size();
 		double ratio;
-		if ((image_size.height > image_size.width) == side_length_as_max)
+		if ((src_size.height > src_size.width) == side_length_as_max)
 		{
-			ratio = double(side_length) / image_size.height;
-			image_size.height = side_length;
-			image_size.width *= ratio;
+			ratio = double(side_length) / src_size.height;
+			src_size.height = side_length;
+			src_size.width *= ratio;
 		}
 		else
 		{
-			ratio = double(side_length) / image_size.width;
-			image_size.width = side_length;
-			image_size.height *= ratio;
+			ratio = double(side_length) / src_size.width;
+			src_size.width = side_length;
+			src_size.height *= ratio;
 		}
-		cv::resize(image, image, image_size, ratio, ratio, cv::InterpolationFlags::INTER_LINEAR);
+		cv::resize(src, dest, src_size);
 		return { ratio };
 	}
 

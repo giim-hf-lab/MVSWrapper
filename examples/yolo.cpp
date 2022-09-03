@@ -101,7 +101,7 @@ int main(int argc, char * argv[])
 		SPDLOG_INFO("->  Image size is {}x{}.", size.width, size.height);
 
 		auto now = std::chrono::system_clock::now();
-		auto ret = model.infer_image(image, conf_threshold, iou_threshold, filter);
+		auto ret = model.forward(image, conf_threshold, iou_threshold, filter);
 		SPDLOG_INFO(
 			"->  Inference time is {:.3}.",
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
 		while (capture.isOpened())
 		{
 			capture >> frame;
-			auto ret = model.infer_image(frame, conf_threshold, iou_threshold, filter);
+			auto ret = model.forward(frame, conf_threshold, iou_threshold, filter);
 
 			for (const auto & [label, score, min_coord, max_coord] : ret)
 				cv::rectangle(frame, min_coord, max_coord, { 0, 0, 255 }, 1, cv::LineTypes::LINE_AA);

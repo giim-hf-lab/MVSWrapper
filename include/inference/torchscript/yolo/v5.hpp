@@ -142,10 +142,10 @@ public:
 	}
 
 	[[nodiscard]]
-	auto infer_image(cv::Mat image, double score_threshold, double iou_threshold, const filter & label_filter) &
+	auto forward(cv::Mat image, double score_threshold, double iou_threshold, const filter & label_filter) &
 	{
 		auto original_size = image.size();
-		auto scaler = transformation::letterbox(image, _image_size, _scale_up, _padded_colour);
+		auto scaler = transformation::letterbox(image, image, _image_size, _scale_up, _padded_colour);
 		cv::cvtColor(image, image, cv::ColorConversionCodes::COLOR_BGR2RGB);
 
 		torch::InferenceMode guard(true);

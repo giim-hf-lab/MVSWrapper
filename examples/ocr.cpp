@@ -110,7 +110,7 @@ int main(int argc, char * argv[])
 		detector.warmup(640, 960);
 
 		auto now = std::chrono::system_clock::now();
-		auto detector_results = detector.infer_image(
+		auto detector_results = detector.forward(
 			image,
 			det_side_length,
 			det_side_length_as_max,
