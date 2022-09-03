@@ -37,10 +37,10 @@ public:
 		cv::Mat image,
 		size_t side_length,
 		bool side_length_as_max,
-		double score_threshold,
+		double threshold,
 		bool dilation,
 		bool fast_scoring,
-		double box_score_threshold,
+		double score_threshold,
 		double unclip_ratio,
 		double min_box_side_length
 	) &
@@ -71,7 +71,7 @@ public:
 		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_det.cpp#L132-L167
 		cv::Mat scores(image_size, CV_32FC1, output_tensor.GetTensorMutableData<float>());
 		cv::Mat bitmap;
-		cv::threshold(scores, bitmap, score_threshold, 255, cv::ThresholdTypes::THRESH_BINARY);
+		cv::threshold(scores, bitmap, threshold, 255, cv::ThresholdTypes::THRESH_BINARY);
 		bitmap.convertTo(bitmap, CV_8UC1, 1.0, 0.0);
 		if (dilation)
 			cv::dilate(bitmap, bitmap, cv::getStructuringElement(cv::MorphShapes::MORPH_RECT, { 2, 2 }));
@@ -93,7 +93,7 @@ public:
 		// 	schedule(dynamic) \
 		// 	default(none) \
 		// 	private(clipper_offset, contour_path) \
-		// 	firstprivate(fast_scoring, box_score_threshold, unclip_ratio, min_box_side_length) \
+		// 	firstprivate(fast_scoring, score_threshold, unclip_ratio, min_box_side_length) \
 		// 	shared(scaler, scores, contours, ret)
 		for (size_t i = 0; i < contours.size(); ++i)
 		{
@@ -128,7 +128,7 @@ public:
 				mask = cv::Mat(bounding.size(), CV_8UC1, cv::Scalar(0));
 				cv::fillPoly(mask, contour, 255, cv::LineTypes::LINE_8, 0, -bounding.tl());
 			}
-			if (cv::mean(scores(bounding), mask)[0] < box_score_threshold)
+			if (cv::mean(scores(bounding), mask)[0] < score_threshold)
 				continue;
 
 			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/postprocess_op.cpp#L20-L68

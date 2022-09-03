@@ -28,9 +28,47 @@ int main(int argc, char * argv[])
 		.nargs(argparse::nargs_pattern::at_least_one)
 		.append()
 		.help("Input images to the inference engine.");
+
 	parser.add_argument("--det-model-path")
 		.required()
-		.help("Directory containing the detection model.");
+		.help("Path to the detector model.");
+
+	parser.add_argument("--det-side-length")
+		.default_value(size_t(960))
+		.scan<'u', size_t>()
+		.help("The maximum side length of the detector input.");
+	parser.add_argument("--det-side-length-as-min")
+		.default_value(false)
+		.implicit_value(true)
+		.help("Whether to use the side length as the minimum side length of the detector input.");
+	parser.add_argument("--det-threshold")
+		.default_value(0.3)
+		.scan<'f', double>()
+		.help("Threshold for the detector.");
+	parser.add_argument("--det-no-dilation")
+		.default_value(false)
+		.implicit_value(true)
+		.help("Whether to disable dilation for the detector.");
+	parser.add_argument("--det-fast-scoring")
+		.default_value(false)
+		.implicit_value(true)
+		.help("Whether to use the fast scoring method for the detected polygons.");
+	parser.add_argument("--det-score-threshold")
+		.default_value(0.6)
+		.scan<'f', double>()
+		.help("Threshold for the scores of detected polygons.");
+	parser.add_argument("--det-unclip-ratio")
+		.default_value(1.5)
+		.scan<'f', double>()
+		.help("Unclip ratio of the detected polygons.");
+	parser.add_argument("--det-box-min-side-length")
+		.default_value(size_t(4))
+		.scan<'u', size_t>()
+		.help("Minimum side length of the detected boxes.");
+	parser.add_argument("--det-box-rotation-threshold-ratio")
+		.default_value(1.5)
+		.scan<'f', double>()
+		.help("Threshold ratio to rotate the detected boxes.");
 
 	parser.add_argument("-L", "--log-level")
 		.scan<'u', size_t>()
@@ -42,18 +80,24 @@ int main(int argc, char * argv[])
 	spdlog::set_pattern("[%Y-%m-%d %H:%M:%S %z (%l)] (thread %t) <%n> %v");
 	spdlog::set_level(static_cast<spdlog::level::level_enum>(parser.get<size_t>("-L")));
 
-	auto det_model_path = parser.get<std::string>("--det-model-path");
-
 	// #pragma omp parallel for
 	// for (size_t i = 0; i < omp_get_num_procs(); ++i);
 
 	Ort::AllocatorWithDefaultOptions allocator;
-	inference::onnxruntime::ocr::detector detector(det_model_path, allocator);
-	detector.warmup(640, 960);
+	inference::onnxruntime::ocr::detector detector(parser.get<std::string>("--det-model-path"), allocator);
+	auto det_side_length = parser.get<size_t>("--det-side-length");
+	auto det_side_length_as_max = not parser.get<bool>("--det-side-length-as-min");
+	auto det_threshold = parser.get<double>("--det-threshold");
+	auto det_dilation = not parser.get<bool>("--det-no-dilation");
+	auto det_fast_scoring = parser.get<bool>("--det-fast-scoring");
+	auto det_score_threshold = parser.get<double>("--det-score-threshold");
+	auto det_unclip_ratio = parser.get<double>("--det-unclip-ratio");
+	auto det_box_min_side_length = parser.get<size_t>("--det-box-min-side-length");
+	auto det_box_rotation_threshold_ratio = parser.get<double>("--det-box-rotation-threshold-ratio");
 
 	for (const auto & image_path : parser.get<std::vector<std::string>>("-i"))
 	{
-		if (!std::filesystem::exists(image_path))
+		if (not std::filesystem::exists(image_path))
 		[[unlikely]]
 		{
 			SPDLOG_ERROR("Image {} does not exist.", image_path);
@@ -63,8 +107,20 @@ int main(int argc, char * argv[])
 		SPDLOG_INFO("Processing image {}.", image_path);
 
 		auto image = cv::imread(image_path);
+		detector.warmup(640, 960);
+
 		auto now = std::chrono::system_clock::now();
-		auto detector_results = detector.infer_image(image, 960, true, 0.3, true, false, 0.6, 1.5, 4);
+		auto detector_results = detector.infer_image(
+			image,
+			det_side_length,
+			det_side_length_as_max,
+			det_threshold,
+			det_dilation,
+			det_fast_scoring,
+			det_score_threshold,
+			det_unclip_ratio,
+			det_box_min_side_length
+		);
 		SPDLOG_INFO(
 			"->  detector time is {:.3}.",
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
@@ -91,7 +147,7 @@ int main(int argc, char * argv[])
 				cv::getPerspectiveTransform(vertices, upright_vertices),
 				size
 			);
-			if (size.height > size.width * 1.5)
+			if (size.height > size.width * det_box_rotation_threshold_ratio)
 				cv::rotate(cropped_image, cropped_image, cv::RotateFlags::ROTATE_90_CLOCKWISE);
 		}
 		SPDLOG_INFO(
