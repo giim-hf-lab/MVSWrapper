@@ -2,11 +2,12 @@
 #define __INFERENCE_ONNXRUNTIME_OCR_DETECTOR_HPP__
 
 #include <cstddef>
+#include <cstdint>
 
 #include <algorithm>
-#include <stdexcept>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include <clipper.offset.h>
 #include <onnxruntime/core/session/onnxruntime_c_api.h>
@@ -15,6 +16,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "../model.hpp"
+#include "../../constants.hpp"
 #include "../../transformation.hpp"
 
 namespace inference::onnxruntime::ocr
@@ -24,7 +26,7 @@ class detector final
 {
 	[[nodiscard]]
 	[[using gnu : always_inline]]
-	inline static std::tuple<transformation, cv::Size, Ort::Value, Ort::Value> preprocess(
+	inline static std::tuple<transformation, cv::Size, Ort::Value, Ort::Value> _preprocess(
 		const cv::Mat & input_image,
 		const cv::Scalar & mean,
 		const cv::Scalar & stddev,
@@ -33,18 +35,15 @@ class detector final
 		OrtAllocator * allocator
 	)
 	{
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/preprocess_op.cpp#L34-L106
 		cv::Mat image;
-		auto scaler = transformation::scale(input_image, image, side_length, side_length_as_max);
-		image.convertTo(image, CV_32FC3, 1.0 / 255.0, 0.0);
-		image -= mean;
-		image /= stddev;
+		auto scaler = transformation::scale_zoom(input_image, image, side_length, side_length_as_max, mean, stddev);
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_det.cpp#L119-L128
 		auto image_size = image.size();
 		int64_t input_shape[] { 1, 3, image_size.height, image_size.width };
 		auto input_tensor = Ort::Value::CreateTensor<float>(allocator, input_shape, 4);
 		auto data_ptr = input_tensor.GetTensorMutableData<float>();
+
+		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_det.cpp#L119-L128
 		size_t stride = image_size.height * image_size.width;
 		cv::Mat split[] {
 			{ image_size, CV_32FC1, data_ptr },
@@ -61,7 +60,7 @@ class detector final
 
 	[[nodiscard]]
 	[[using gnu : always_inline]]
-	inline static auto postprocess(
+	inline static auto _postprocess(
 		const transformation & scaler,
 		const cv::Mat & scores,
 		double threshold,
@@ -87,8 +86,8 @@ class detector final
 			cv::RetrievalModes::RETR_LIST,
 			cv::ContourApproximationModes::CHAIN_APPROX_SIMPLE
 		);
-		std::vector<cv::RotatedRect> ret;
-		ret.reserve(contours.size());
+		std::vector<cv::RotatedRect> results;
+		results.reserve(results.size() + contours.size());
 		// reuse allocated memory if possible
 		Clipper2Lib::ClipperOffset clipper_offset;
 		Clipper2Lib::Path64 contour_path;
@@ -150,14 +149,14 @@ class detector final
 
 			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/postprocess_op.cpp#L324-L353
 			auto enclosing = cv::minAreaRect(contour);
-			if (auto & size = enclosing.size; std::min(size.height, size.width) <= min_box_side_length)
+			if (const auto & size = enclosing.size; std::min(size.height, size.width) <= min_box_side_length)
 				continue;
 
 			// #pragma omp critical
-			ret.emplace_back(std::move(enclosing));
+			results.emplace_back(std::move(enclosing));
 		}
 
-		return ret;
+		return results;
 	}
 
 	model _model;
@@ -167,8 +166,8 @@ public:
 	detector(
 		const std::string & model_path,
 		OrtAllocator * allocator,
-		const cv::Scalar & mean = { 0.485, 0.456, 0.406 },
-		const cv::Scalar & stddev = { 0.229, 0.224, 0.225 }
+		const cv::Scalar & mean = cv::IMAGE_NET_MEAN,
+		const cv::Scalar & stddev = cv::IMAGE_NET_STDDEV
 	) : _model(model_path, allocator), _allocator(allocator), _mean(mean), _stddev(stddev) {}
 
 	[[nodiscard]]
@@ -184,7 +183,7 @@ public:
 		double min_box_side_length
 	) &
 	{
-		auto [scaler, image_size, input_tensor, output_tensor] = preprocess(
+		auto [scaler, image_size, input_tensor, output_tensor] = _preprocess(
 			input_image,
 			_mean,
 			_stddev,
@@ -193,7 +192,7 @@ public:
 			_allocator
 		);
 		_model(input_tensor, output_tensor);
-		return postprocess(
+		return _postprocess(
 			scaler,
 			{ image_size, CV_32FC1, output_tensor.GetTensorMutableData<float>() },
 			threshold,

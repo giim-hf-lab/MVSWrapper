@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <argparse/argparse.hpp>
@@ -16,6 +17,7 @@
 #include <opencv2/imgproc.hpp>
 #include <spdlog/spdlog.h>
 
+#include "inference/onnxruntime/ocr/classifier.hpp"
 #include "inference/onnxruntime/ocr/detector.hpp"
 
 int main(int argc, char * argv[])
@@ -32,6 +34,9 @@ int main(int argc, char * argv[])
 	parser.add_argument("--det-model-path")
 		.required()
 		.help("Path to the detector model.");
+	parser.add_argument("--cls-model-path")
+		.required()
+		.help("Path to the classifier model.");
 
 	parser.add_argument("--det-side-length")
 		.default_value(size_t(960))
@@ -65,10 +70,20 @@ int main(int argc, char * argv[])
 		.default_value(size_t(4))
 		.scan<'u', size_t>()
 		.help("Minimum side length of the detected boxes.");
-	parser.add_argument("--det-box-rotation-threshold-ratio")
-		.default_value(1.5)
+
+	parser.add_argument("--cls-shape")
+		.default_value(std::vector<size_t> { 48, 192 })
+		.nargs(2)
+		.scan<'u', size_t>()
+		.help("Shape of the classifier input ([height, width]).");
+	parser.add_argument("--cls-batch")
+		.default_value(size_t(10))
+		.scan<'u', size_t>()
+		.help("Batch size of the classifier.");
+	parser.add_argument("--cls-threshold")
+		.default_value(0.9)
 		.scan<'f', double>()
-		.help("Threshold ratio to rotate the detected boxes.");
+		.help("Threshold for the classifier.");
 
 	parser.add_argument("-L", "--log-level")
 		.scan<'u', size_t>()
@@ -84,6 +99,7 @@ int main(int argc, char * argv[])
 	// for (size_t i = 0; i < omp_get_num_procs(); ++i);
 
 	Ort::AllocatorWithDefaultOptions allocator;
+
 	inference::onnxruntime::ocr::detector detector(parser.get<std::string>("--det-model-path"), allocator);
 	auto det_side_length = parser.get<size_t>("--det-side-length");
 	auto det_side_length_as_max = not parser.get<bool>("--det-side-length-as-min");
@@ -93,7 +109,19 @@ int main(int argc, char * argv[])
 	auto det_score_threshold = parser.get<double>("--det-score-threshold");
 	auto det_unclip_ratio = parser.get<double>("--det-unclip-ratio");
 	auto det_box_min_side_length = parser.get<size_t>("--det-box-min-side-length");
-	auto det_box_rotation_threshold_ratio = parser.get<double>("--det-box-rotation-threshold-ratio");
+
+	inference::onnxruntime::ocr::classifier classifier(parser.get<std::string>("--cls-model-path"), allocator);
+	auto cls_shape_vec = parser.get<std::vector<size_t>>("--cls-shape");
+	auto cls_batch = parser.get<size_t>("--cls-batch");
+	auto cls_threshold = parser.get<double>("--cls-threshold");
+
+	if (cls_shape_vec.size() != 2)
+	[[unlikely]]
+	{
+		SPDLOG_ERROR("Invalid shape of the classifier input.");
+		return 1;
+	}
+	cv::Size cls_shape(cls_shape_vec[1], cls_shape_vec[0]);
 
 	for (const auto & image_path : parser.get<std::vector<std::string>>("-i"))
 	{
@@ -126,32 +154,18 @@ int main(int argc, char * argv[])
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
 		);
 
+		classifier.warmup(cls_batch, cls_shape.height, cls_shape.width);
+
 		now = std::chrono::system_clock::now();
-		std::vector<cv::Mat> cropped_images;
-		cropped_images.reserve(detector_results.size());
-		for (const auto & detector_result : detector_results)
-		{
-			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/utility.cpp#L101-L154
-			auto & cropped_image = cropped_images.emplace_back();
-			auto & size = detector_result.size;
-			cv::Point2f vertices[4], upright_vertices[4] {
-				{ 0, size.height },
-				{ 0, 0 },
-				{ size.width, 0 },
-				{ size.width, size.height }
-			};
-			detector_result.points(vertices);
-			cv::warpPerspective(
-				image,
-				cropped_image,
-				cv::getPerspectiveTransform(vertices, upright_vertices),
-				size
-			);
-			if (size.height > size.width * det_box_rotation_threshold_ratio)
-				cv::rotate(cropped_image, cropped_image, cv::RotateFlags::ROTATE_90_CLOCKWISE);
-		}
+		auto classifier_results = classifier.forward(
+			image,
+			detector_results,
+			cls_batch,
+			cls_shape,
+			cls_threshold
+		);
 		SPDLOG_INFO(
-			"->  detector result processing time is {:.3}.",
+			"->  classifier time is {:.3}.",
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
 		);
 	}
