@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include <algorithm>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -43,7 +44,6 @@ class detector final
 		auto input_tensor = Ort::Value::CreateTensor<float>(allocator, input_shape, 4);
 		auto data_ptr = input_tensor.GetTensorMutableData<float>();
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_det.cpp#L119-L128
 		size_t stride = image_size.height * image_size.width;
 		cv::Mat split[] {
 			{ image_size, CV_32FC1, data_ptr },
@@ -71,14 +71,12 @@ class detector final
 		double min_box_side_length
 	)
 	{
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_det.cpp#L132-L167
 		cv::Mat bitmap;
 		cv::threshold(scores, bitmap, threshold, 255, cv::ThresholdTypes::THRESH_BINARY);
 		bitmap.convertTo(bitmap, CV_8UC1, 1.0, 0.0);
 		if (dilation)
 			cv::dilate(bitmap, bitmap, cv::getStructuringElement(cv::MorphShapes::MORPH_RECT, { 2, 2 }));
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/postprocess_op.cpp#L247-L322
 		std::vector<std::vector<cv::Point>> contours;
 		cv::findContours(
 			bitmap,
@@ -104,7 +102,6 @@ class detector final
 			[[unlikely]]
 				continue;
 
-			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/postprocess_op.cpp#L163-L207
 			cv::Rect bounding;
 			cv::Mat mask;
 			if (fast_scoring)
@@ -133,7 +130,6 @@ class detector final
 			if (cv::mean(scores(bounding), mask)[0] < score_threshold)
 				continue;
 
-			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/postprocess_op.cpp#L20-L68
 			auto offset = cv::contourArea(contour, false) * unclip_ratio / cv::arcLength(contour, true);
 			contour_path.clear();
 			contour_path.reserve(contour.size());
@@ -147,7 +143,6 @@ class detector final
 			for (const auto & point : contour_path)
 				contour.emplace_back(point.x / scaler.ratio, point.y / scaler.ratio);
 
-			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/postprocess_op.cpp#L324-L353
 			auto enclosing = cv::minAreaRect(contour);
 			if (const auto & size = enclosing.size; std::min(size.height, size.width) <= min_box_side_length)
 				continue;

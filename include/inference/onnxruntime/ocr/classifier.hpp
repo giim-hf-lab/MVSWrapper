@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <tuple>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -45,11 +45,13 @@ public:
 		std::vector<cv::Mat> results, fragments;
 		results.reserve(detector_results.size());
 		fragments.reserve(batch);
+
 		int64_t input_shape[] { batch, 3, shape.height, shape.width };
 		auto input_tensor = Ort::Value::CreateTensor<float>(_allocator, input_shape, 4);
 		int64_t output_shape[] { batch, 2 };
 		auto output_tensor = Ort::Value::CreateTensor<float>(_allocator, output_shape, 2);
 		size_t stride = shape.height * shape.width;
+
 		for (size_t i = 0; i < detector_results.size(); i += batch)
 		{
 			size_t left = std::min(batch, detector_results.size() - i);
@@ -57,7 +59,6 @@ public:
 			{
 				const auto & detector_result = detector_results[pos];
 
-				// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/utility.cpp#L101-L154
 				auto & cropped_image = fragments.emplace_back();
 				auto & size = detector_result.size;
 				cv::Point2f vertices[4], upright_vertices[4] {
@@ -77,27 +78,24 @@ public:
 					cv::rotate(cropped_image, cropped_image, cv::RotateFlags::ROTATE_90_CLOCKWISE);
 			}
 
-			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_cls.cpp#L30-L53
 			auto input_ptr = input_tensor.GetTensorMutableData<float>();
 			for (const auto & fragment : fragments)
 			{
-				cv::Mat resized_fragment;
-				transformation::scale_letterbox(fragment, resized_fragment, shape, _mean, _stddev);
+				cv::Mat transformed;
+				transformation::scale_letterbox(fragment, transformed, shape, _mean, _stddev);
 
-				// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_det.cpp#L119-L128
 				cv::Mat split[] {
 					{ shape, CV_32FC1, input_ptr },
 					{ shape, CV_32FC1, input_ptr + stride },
 					{ shape, CV_32FC1, input_ptr + 2 * stride }
 				};
-				cv::split(resized_fragment, split);
+				cv::split(transformed, split);
 
 				input_ptr += 3 * stride;
 			}
 
 			_model(input_tensor, output_tensor);
 
-			// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/ocr_cls.cpp#L66-L93
 			auto output_ptr = output_tensor.GetTensorData<float>();
 			for (size_t j = 0, pos = 0; j < left; ++j, pos += 2)
 				if (auto s1 = output_ptr[pos], s2 = output_ptr[pos + 1]; s1 < s2 and s2 > threshold)
@@ -107,12 +105,13 @@ public:
 
 			fragments.clear();
 		}
+
 		return results;
 	}
 
-	void warmup(size_t batch, size_t height, size_t width) &
+	void warmup(size_t batch, const cv::Size & shape) &
 	{
-		int64_t input_shape[] { batch, 3, height, width };
+		int64_t input_shape[] { batch, 3, shape.height, shape.width };
 		auto input_tensor = Ort::Value::CreateTensor<float>(_allocator, input_shape, 4);
 		int64_t output_shape[] { batch, 2 };
 		auto output_tensor = Ort::Value::CreateTensor<float>(_allocator, output_shape, 2);

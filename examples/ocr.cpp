@@ -19,6 +19,7 @@
 
 #include "inference/onnxruntime/ocr/classifier.hpp"
 #include "inference/onnxruntime/ocr/detector.hpp"
+#include "inference/onnxruntime/ocr/recogniser.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -37,6 +38,12 @@ int main(int argc, char * argv[])
 	parser.add_argument("--cls-model-path")
 		.required()
 		.help("Path to the classifier model.");
+	parser.add_argument("--rec-model-path")
+		.required()
+		.help("Path to the recogniser model.");
+	parser.add_argument("--rec-dict-path")
+		.required()
+		.help("Path to the recogniser dictionary.");
 
 	parser.add_argument("--det-side-length")
 		.default_value(size_t(960))
@@ -85,6 +92,20 @@ int main(int argc, char * argv[])
 		.scan<'f', double>()
 		.help("Threshold for the classifier.");
 
+	parser.add_argument("--rec-shape")
+		.default_value(std::vector<size_t> { 48, 320 })
+		.nargs(2)
+		.scan<'u', size_t>()
+		.help("Shape of the recogniser input ([height, width]).");
+	parser.add_argument("--rec-batch")
+		.default_value(size_t(10))
+		.scan<'u', size_t>()
+		.help("Batch size of the recogniser.");
+	parser.add_argument("--rec-threshold")
+		.default_value(0.5)
+		.scan<'f', double>()
+		.help("Threshold for the recogniser.");
+
 	parser.add_argument("-L", "--log-level")
 		.scan<'u', size_t>()
 		.default_value(size_t(2))
@@ -115,6 +136,15 @@ int main(int argc, char * argv[])
 	auto cls_batch = parser.get<size_t>("--cls-batch");
 	auto cls_threshold = parser.get<double>("--cls-threshold");
 
+	inference::onnxruntime::ocr::recogniser recogniser(
+		parser.get<std::string>("--rec-model-path"),
+		allocator,
+		parser.get<std::string>("--rec-dict-path")
+	);
+	auto rec_shape_vec = parser.get<std::vector<size_t>>("--rec-shape");
+	auto rec_batch = parser.get<size_t>("--rec-batch");
+	auto rec_threshold = parser.get<double>("--rec-threshold");
+
 	if (cls_shape_vec.size() != 2)
 	[[unlikely]]
 	{
@@ -122,6 +152,14 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 	cv::Size cls_shape(cls_shape_vec[1], cls_shape_vec[0]);
+
+	if (rec_shape_vec.size() != 2)
+	[[unlikely]]
+	{
+		SPDLOG_ERROR("Invalid shape of the recogniser input.");
+		return 1;
+	}
+	cv::Size rec_shape(rec_shape_vec[1], rec_shape_vec[0]);
 
 	for (const auto & image_path : parser.get<std::vector<std::string>>("-i"))
 	{
@@ -154,7 +192,7 @@ int main(int argc, char * argv[])
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
 		);
 
-		classifier.warmup(cls_batch, cls_shape.height, cls_shape.width);
+		classifier.warmup(cls_batch, cls_shape);
 
 		now = std::chrono::system_clock::now();
 		auto classifier_results = classifier.forward(
@@ -168,6 +206,23 @@ int main(int argc, char * argv[])
 			"->  classifier time is {:.3}.",
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
 		);
+
+		recogniser.warmup(rec_batch, rec_shape);
+
+		now = std::chrono::system_clock::now();
+		auto recogniser_results = recogniser.forward(
+			classifier_results,
+			rec_batch,
+			rec_shape,
+			rec_threshold
+		);
+		SPDLOG_INFO(
+			"->  recogniser time is {:.3}.",
+			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
+		);
+
+		for (const auto & [index, str, score] : recogniser_results)
+			SPDLOG_INFO("    ->  {}: {} ({:.3}).", index, str, score);
 	}
 
 	return 0;

@@ -62,7 +62,6 @@ struct transformation final
 		const cv::Scalar & stddev
 	)
 	{
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/preprocess_op.cpp#L71-L106
 		auto src_size = src.size();
 		double ratio;
 		if ((src_size.height > src_size.width) == side_length_as_max)
@@ -79,7 +78,6 @@ struct transformation final
 		}
 		cv::resize(src, dest, src_size);
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/preprocess_op.cpp#L55-69
 		dest.convertTo(dest, CV_32FC3, 1.0 / 255.0, 0.0);
 		dest -= mean;
 		dest /= stddev;
@@ -99,7 +97,6 @@ struct transformation final
 		if (src_size == dest_size)
 			return {};
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/preprocess_op.cpp#L133-L149
 		auto ratio = std::min(double(dest_size.width) / src_size.width, double(dest_size.height) / src_size.height);
 		src_size.height *= ratio;
 		src_size.width *= ratio;
@@ -107,12 +104,10 @@ struct transformation final
 		src_size.width = std::clamp(src_size.width, 0, dest_size.width);
 		cv::resize(src, dest, src_size);
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/preprocess_op.cpp#L55-69
 		dest.convertTo(dest, CV_32FC3, 1.0 / 255.0, 0.0);
 		dest -= mean;
 		dest /= stddev;
 
-		// https://github.com/PaddlePaddle/PaddleOCR/blob/v2.6.0/deploy/cpp_infer/src/preprocess_op.cpp#L150-L154
 		size_t width_pad = dest_size.width - src_size.width, height_pad = dest_size.height - src_size.height;
 		size_t left = width_pad >> 1, right = width_pad - left;
 		size_t top = height_pad >> 1, bottom = height_pad - top;

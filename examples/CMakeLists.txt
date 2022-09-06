@@ -25,6 +25,7 @@ target_link_libraries(ocr PRIVATE
 	argparse::argparse
 	Clipper2
 	fmt::fmt
+	mio::mio
 	spdlog::spdlog
 
 	opencv_core
