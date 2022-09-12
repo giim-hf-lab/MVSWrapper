@@ -1,26 +1,5 @@
 {
   "cmake.buildDirectory": "${workspaceFolder}/build/project",
   "cmake.generator": "Ninja",
-  "C_Cpp.autoAddFileAssociations": false,
-  "C_Cpp.default.cStandard": "c17",
-  "C_Cpp.default.cppStandard": "c++20",
-  "C_Cpp.default.includePath": [
-    "/usr/include",
-    "/usr/include/opencv4",
-    "/usr/local/include",
-    "${workspaceFolder}/dist/ort/include",
-    "${workspaceFolder}/dist/torch/include",
-    "${workspaceFolder}/dist/torch/include/torch/csrc/api/include",
-    "${workspaceFolder}/dist/torchvision/include",
-    "${workspaceFolder}/externals/argparse/include",
-    "${workspaceFolder}/externals/Clipper2/CPP/Clipper2Lib",
-    "${workspaceFolder}/externals/ctre/include",
-    "${workspaceFolder}/externals/fmt/include",
-    "${workspaceFolder}/externals/json/include",
-    "${workspaceFolder}/externals/mimalloc/include",
-    "${workspaceFolder}/externals/mio/include",
-    "${workspaceFolder}/externals/spdlog/include",
-    "${workspaceFolder}/include",
-    "${workspaceFolder}/private/include"
-  ]
+  "C_Cpp.autoAddFileAssociations": false
 }
