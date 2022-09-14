@@ -1,22 +1,6 @@
-[submodule "private"]
-	path = private
-	url = ../private-inference.git
-	branch = main
-[submodule "externals/fmt"]
-	path = externals/fmt
-	url = git@github.com:fmtlib/fmt.git
-	ignore = dirty
-[submodule "externals/mio"]
-	path = externals/mio
-	url = git@github.com:mandreyel/mio.git
-	ignore = dirty
-[submodule "externals/argparse"]
-	path = externals/argparse
-	url = git@github.com:p-ranav/argparse.git
-	ignore = dirty
-[submodule "externals/spdlog"]
-	path = externals/spdlog
-	url = git@github.com:gabime/spdlog.git
+[submodule "externals/onnxruntime"]
+	path = externals/onnxruntime
+	url = git@github.com:microsoft/onnxruntime.git
 	ignore = dirty
 [submodule "externals/torch/vision"]
 	path = externals/torch/vision
@@ -26,21 +10,27 @@
 	path = externals/torch/pytorch
 	url = git@github.com:pytorch/pytorch.git
 	ignore = dirty
-[submodule "externals/onnxruntime"]
-	path = externals/onnxruntime
-	url = git@github.com:microsoft/onnxruntime.git
+[submodule "third_party/argparse"]
+	path = third_party/argparse
+	url = git@github.com:p-ranav/argparse.git
 	ignore = dirty
-[submodule "externals/json"]
-	path = externals/json
+[submodule "third_party/clipper"]
+	path = third_party/clipper
+	url = git@github.com:AngusJohnson/Clipper2.git
+	ignore = dirty
+[submodule "third_party/fmt"]
+	path = third_party/fmt
+	url = git@github.com:fmtlib/fmt.git
+	ignore = dirty
+[submodule "third_party/mio"]
+	path = third_party/mio
+	url = git@github.com:mandreyel/mio.git
+	ignore = dirty
+[submodule "third_party/spdlog"]
+	path = third_party/spdlog
+	url = git@github.com:gabime/spdlog.git
+	ignore = dirty
+[submodule "third_party/nlohmann_json"]
+	path = third_party/nlohmann_json
 	url = git@github.com:nlohmann/json.git
 	ignore = dirty
-[submodule "externals/ctre"]
-	path = externals/ctre
-	url = git@github.com:hanickadot/compile-time-regular-expressions.git
-	ignore = dirty
-[submodule "externals/Clipper2"]
-	path = externals/Clipper2
-	url = git@github.com:AngusJohnson/Clipper2.git
-[submodule "externals/mimalloc"]
-	path = externals/mimalloc
-	url = git@github.com:microsoft/mimalloc.git

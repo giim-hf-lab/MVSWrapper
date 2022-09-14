@@ -1,25 +1,21 @@
-#ifndef __INFERENCE_TORCHSCRIPT_UTILS_HPP__
-#define __INFERENCE_TORCHSCRIPT_UTILS_HPP__
-
-#include <cstddef>
-#include <cstdint>
-
-#include <algorithm>
-#include <tuple>
+#ifndef _INFERENCES_ENGINES_INTERNALS__INFERENCE_TORCHSCRIPT_TRANSFORMATION_HPP_
+#define _INFERENCES_ENGINES_INTERNALS__INFERENCE_TORCHSCRIPT_TRANSFORMATION_HPP_
 
 #include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <torch/script.h>
+#include <torch/torch.h>
 
 #include "../transformation.hpp"
 
-namespace inference
+namespace inferences
 {
 
-namespace torchscript
+namespace framework::torchscript
 {
 
-static void xywh2xyxy(const torch::Tensor & boxes, const cv::Size & size)
+namespace
+{
+
+inline static void xywh2xyxy(const torch::Tensor& boxes, const cv::Size& size)
 {
 	auto sx = boxes.select(2, 2) / 2;
 	auto sy = boxes.select(2, 3) / 2;
@@ -33,8 +29,13 @@ static void xywh2xyxy(const torch::Tensor & boxes, const cv::Size & size)
 
 }
 
+}
+
+namespace
+{
+
 template<>
-void transformation::rescale<torch::Tensor>(torch::Tensor & boxes, const cv::Size & size) const
+void transformation::rescale<torch::Tensor>(torch::Tensor& boxes, const cv::Size& size) const
 {
 	if (ratio == 0.0)
 		return;
@@ -43,6 +44,8 @@ void transformation::rescale<torch::Tensor>(torch::Tensor & boxes, const cv::Siz
 	boxes.select(2, 1) = ((boxes.select(2, 1) - top) / ratio).clamp(0, size.height);
 	boxes.select(2, 2) = ((boxes.select(2, 2) - right) / ratio).clamp(0, size.width);
 	boxes.select(2, 3) = ((boxes.select(2, 3) - bottom) / ratio).clamp(0, size.width);
+}
+
 }
 
 }

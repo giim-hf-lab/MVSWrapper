@@ -1,5 +1,5 @@
-#ifndef __INFERENCE_TORCHSCRIPT_YOLO_NMS_HPP__
-#define __INFERENCE_TORCHSCRIPT_YOLO_NMS_HPP__
+#ifndef _INFERENCES_ENGINES_INTERNALS__INFERENCE_TORCHSCRIPT_YOLO_NMS_HPP_
+#define _INFERENCES_ENGINES_INTERNALS__INFERENCE_TORCHSCRIPT_YOLO_NMS_HPP_
 
 #include <cstddef>
 #include <cstdint>
@@ -7,16 +7,18 @@
 #include <algorithm>
 #include <tuple>
 
-#include <torch/script.h>
+#include <torch/torch.h>
 #include <torchvision/ops/nms.h>
 
-#include "../filter.hpp"
+#include "framework/torchscript/filter.hpp"
 
-namespace inference::torchscript::yolo
+namespace inferences::framework::torchscript::yolo
+{
+
+namespace
 {
 
 [[nodiscard]]
-[[using gnu : always_inline]]
 inline static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> empty_result(
 	torch::DeviceType device_type,
 	torch::ScalarType scores_scalar_type
@@ -32,11 +34,11 @@ inline static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> em
 }
 
 [[nodiscard]]
-static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> non_max_suppression(
+inline static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> non_max_suppression(
 	torch::Tensor result,
 	double score_threshold,
 	double iou_threshold,
-	const filter & label_filter,
+	const filter& label_filter,
 	int64_t max_wh,
 	torch::DeviceType results_device_type,
 	torch::ScalarType results_scores_scalar_type
@@ -61,7 +63,7 @@ static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> non_max_s
 	scores = scores.index_select(0, indices);
 	classes = classes.index_select(0, indices);
 
-	if (const auto & inclusion = label_filter.inclusion; inclusion.size(0))
+	if (const auto& inclusion = label_filter.inclusion; inclusion.size(0))
 	{
 		indices = (classes == inclusion).any(1, false).nonzero().squeeze(1);
 		if (!indices.size(0))
@@ -72,7 +74,7 @@ static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> non_max_s
 		classes = classes.index_select(0, indices);
 	}
 
-	if (const auto & exclusion = label_filter.exclusion; exclusion.size(0))
+	if (const auto& exclusion = label_filter.exclusion; exclusion.size(0))
 	{
 		indices = (classes != exclusion).all(1, false).nonzero().squeeze(1);
 		if (!indices.size(0))
@@ -99,6 +101,8 @@ static std::tuple<size_t, torch::Tensor, torch::Tensor, torch::Tensor> non_max_s
 				.to(results_device_type, torch::kInt64, false, false, torch::MemoryFormat::Contiguous)
 		};
 	return empty_result(results_device_type, results_scores_scalar_type);
+}
+
 }
 
 }

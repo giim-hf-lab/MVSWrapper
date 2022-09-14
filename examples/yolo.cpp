@@ -20,7 +20,7 @@
 #include <torch/csrc/jit/passes/tensorexpr_fuser.h>
 #include <torch/csrc/jit/runtime/graph_executor.h>
 
-#include "inference/torchscript/yolo/v5.hpp"
+#include <inferences/framework/torchscript/yolo/v5.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -70,8 +70,11 @@ int main(int argc, char * argv[])
 	auto excluded_labels = parser.get<std::vector<std::string>>("-X");
 	SPDLOG_INFO("Excluded labels: [ {} ].", fmt::join(excluded_labels, " , "));
 
-	auto conf_threshold = parser.get<double>("--conf-threshold"), iou_threshold = parser.get<double>("--iou-threshold");
-	SPDLOG_INFO("Thresholds set to conf={:.3f} and iou={:.3f}.", conf_threshold, iou_threshold);
+	inferences::framework::torchscript::yolo::v5::parameters parameters(
+		false,
+		parser.get<double>("--conf-threshold"),
+		parser.get<double>("--iou-threshold")
+	);
 
 	torch::jit::FusionStrategy static_strategy { { torch::jit::FusionBehavior::STATIC, 1 } };
 	torch::jit::getProfilingMode() = false;
@@ -79,7 +82,7 @@ int main(int argc, char * argv[])
 	torch::jit::setGraphExecutorOptimize(false);
 	torch::jit::setTensorExprFuserEnabled(false);
 	auto model_path = parser.get<std::string>("-w");
-	inference::torchscript::yolo::v5 model(model_path, torch::kCUDA, torch::kFloat16, false);
+	inferences::framework::torchscript::yolo::v5 model(model_path, torch::kCUDA, torch::kFloat16);
 	SPDLOG_INFO("Model {} loaded.", model_path);
 	model.warmup();
 
@@ -101,7 +104,7 @@ int main(int argc, char * argv[])
 		SPDLOG_INFO("->  Image size is {}x{}.", size.width, size.height);
 
 		auto now = std::chrono::system_clock::now();
-		auto ret = model.forward(image, conf_threshold, iou_threshold, filter);
+		auto ret = model(image, parameters, filter);
 		SPDLOG_INFO(
 			"->  Inference time is {:.3}.",
 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - now)
@@ -123,7 +126,7 @@ int main(int argc, char * argv[])
 		while (capture.isOpened())
 		{
 			capture >> frame;
-			auto ret = model.forward(frame, conf_threshold, iou_threshold, filter);
+			auto ret = model(frame, parameters, filter);
 
 			for (const auto & [label, score, min_coord, max_coord] : ret)
 				cv::rectangle(frame, min_coord, max_coord, { 0, 0, 255 }, 1, cv::LineTypes::LINE_AA);
