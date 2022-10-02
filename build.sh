@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -eu
 
-installed_path="build/_installed"
+cmake --toolchain ${PWD}/toolchains/ubuntu/gcc-11.cmake -G Ninja -B build \
+	-DCMAKE_INSTALL_PREFIX=dist \
+	-Dinferences_BUILD_EXAMPLES:BOOL=ON \
+	-Dinferences_BUILD_INTERNAL:BOOL=ON \
+	.
 
-cmake --toolchain ${PWD}/toolchains/ubuntu/gcc-11.cmake -G Ninja -B build/project .
-
-cmake --build build/project --config Release --target $*
+cmake --build build --config Release

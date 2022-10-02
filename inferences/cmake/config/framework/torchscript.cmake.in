@@ -1,0 +1,10 @@
+find_dependency(Torch REQUIRED)
+find_dependency(TorchVision REQUIRED)
+
+target_link_libraries(@CMAKE_PROJECT_NAME@::framework::torchscript INTERFACE
+	opencv_core
+	opencv_imgproc
+
+	torch
+	TorchVision::TorchVision
+)

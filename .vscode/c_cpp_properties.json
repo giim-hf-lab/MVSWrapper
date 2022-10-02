@@ -6,20 +6,20 @@
       "/usr/local/include"
     ],
     "projectIncludePath": [
-      "${workspaceFolder}/dist/ort/include",
+      "${workspaceFolder}/inferences/include",
+      "${workspaceFolder}/dist/inferences/include",
+
+      "${workspaceFolder}/third_party/argparse/include",
+      "${workspaceFolder}/third_party/clipper/CPP/Clipper2Lib",
+      "${workspaceFolder}/third_party/fmt/include",
+      "${workspaceFolder}/third_party/mio/include",
+      "${workspaceFolder}/third_party/nlohmann_json/include",
+      "${workspaceFolder}/third_party/spdlog/include",
+
+      "${workspaceFolder}/dist/onnxruntime/include",
       "${workspaceFolder}/dist/torch/include",
       "${workspaceFolder}/dist/torch/include/torch/csrc/api/include",
-      "${workspaceFolder}/dist/torchvision/include",
-      "${workspaceFolder}/externals/argparse/include",
-      "${workspaceFolder}/externals/Clipper2/CPP/Clipper2Lib",
-      "${workspaceFolder}/externals/ctre/include",
-      "${workspaceFolder}/externals/fmt/include",
-      "${workspaceFolder}/externals/json/include",
-      "${workspaceFolder}/externals/mimalloc/include",
-      "${workspaceFolder}/externals/mio/include",
-      "${workspaceFolder}/externals/spdlog/include",
-      "${workspaceFolder}/include",
-      "${workspaceFolder}/private/include"
+      "${workspaceFolder}/dist/torchvision/include"
     ]
   },
   "configurations": [
@@ -27,9 +27,6 @@
       "name": "ubuntu-gcc-11",
       "compilerPath": "/usr/bin/gcc-11",
       "intelliSenseMode": "linux-gcc-x64",
-      "compilerArgs": [
-        "-fopenmp"
-      ],
       "cStandard": "c17",
       "cppStandard": "c++20",
       "includePath": [

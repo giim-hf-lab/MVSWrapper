@@ -1,0 +1,25 @@
+include(CMakeFindDependencyMacro)
+
+find_dependency(OpenCV REQUIRED)
+find_dependency(PkgConfig REQUIRED)
+
+@PACKAGE_INIT@
+
+set(@CMAKE_PROJECT_NAME@_INCLUDE_DIR ${PACKAGE_PREFIX_DIR}/include)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@CMAKE_PROJECT_NAME@-targets.cmake")
+
+set(_target_name)
+set(_target_symbol)
+set(_target_filename)
+foreach (_target_name @ALL_EXPORTED_TARGETS@)
+	string(REPLACE "_" "::" _target_symbol ${_target_name})
+	string(REPLACE "_" "/" _target_filename ${_target_name})
+
+	target_include_directories(@CMAKE_PROJECT_NAME@::${_target_symbol} INTERFACE ${@CMAKE_PROJECT_NAME@_INCLUDE_DIR})
+
+	include("${CMAKE_CURRENT_LIST_DIR}/config/${_target_filename}.cmake")
+endforeach ()
+unset(_target_filename)
+unset(_target_symbol)
+unset(_target_name)
