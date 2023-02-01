@@ -1,36 +1,36 @@
-[submodule "externals/onnxruntime"]
-	path = externals/onnxruntime
-	url = git@github.com:microsoft/onnxruntime.git
+[submodule "ext/argparse"]
+	path = ext/argparse
+	url = ../../p-ranav/argparse.git
 	ignore = dirty
-[submodule "externals/torch/vision"]
-	path = externals/torch/vision
-	url = git@github.com:pytorch/vision.git
+[submodule "ext/clipper"]
+	path = ext/clipper
+	url = ../../AngusJohnson/Clipper2.git
 	ignore = dirty
-[submodule "externals/torch/pytorch"]
-	path = externals/torch/pytorch
-	url = git@github.com:pytorch/pytorch.git
+[submodule "ext/fmt"]
+	path = ext/fmt
+	url = ../../fmtlib/fmt.git
 	ignore = dirty
-[submodule "third_party/argparse"]
-	path = third_party/argparse
-	url = git@github.com:p-ranav/argparse.git
+[submodule "ext/mimalloc"]
+	path = ext/mimalloc
+	url = ../../microsoft/mimalloc.git
 	ignore = dirty
-[submodule "third_party/clipper"]
-	path = third_party/clipper
-	url = git@github.com:AngusJohnson/Clipper2.git
+[submodule "ext/mio"]
+	path = ext/mio
+	url = ../../mandreyel/mio.git
 	ignore = dirty
-[submodule "third_party/fmt"]
-	path = third_party/fmt
-	url = git@github.com:fmtlib/fmt.git
+[submodule "ext/msgpack"]
+	path = ext/msgpack
+	url = ../../msgpack/msgpack-c.git
 	ignore = dirty
-[submodule "third_party/mio"]
-	path = third_party/mio
-	url = git@github.com:mandreyel/mio.git
+[submodule "ext/onnxruntime"]
+	path = ext/onnxruntime
+	url = ../../microsoft/onnxruntime.git
 	ignore = dirty
-[submodule "third_party/spdlog"]
-	path = third_party/spdlog
-	url = git@github.com:gabime/spdlog.git
+[submodule "ext/opencv"]
+	path = ext/opencv
+	url = ../../opencv/opencv.git
 	ignore = dirty
-[submodule "third_party/nlohmann_json"]
-	path = third_party/nlohmann_json
-	url = git@github.com:nlohmann/json.git
+[submodule "ext/spdlog"]
+	path = ext/spdlog
+	url = ../../gabime/spdlog.git
 	ignore = dirty

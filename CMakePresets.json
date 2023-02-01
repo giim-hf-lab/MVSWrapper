@@ -1,0 +1,112 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24
+  },
+  "buildPresets": [
+    {
+      "name": "examples",
+      "hidden": true,
+      "targets": [
+      ],
+      "verbose": true
+    },
+	{
+	  "name": "examples-release",
+	  "inherits": "examples",
+	  "displayName": "Examples [Release]",
+	  "configurePreset": "windows-msvc-x64-release"
+	}
+  ],
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        // policies
+        "CMAKE_POLICY_DEFAULT_CMP0077": "NEW",
+        "CMAKE_POLICY_DEFAULT_CMP0126": "NEW",
+        "CMAKE_POLICY_DEFAULT_CMP0135": "NEW",
+        // general options
+        "BUILD_DOCS": false,
+        "BUILD_EXAMPLES": false,
+        "BUILD_PERF_TESTS": false,
+        "BUILD_SHARED_LIBS": false,
+        "BUILD_TESTING": false,
+        "BUILD_TESTS": false,
+        "CMAKE_C_STANDARD": "17",
+        "CMAKE_C_STANDARD_REQUIRED": true,
+        "CMAKE_C_EXTENSIONS": false,
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": true,
+        "CMAKE_CXX_EXTENSIONS": false,
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        // package hints
+        "Python_ROOT_DIR": "${sourceDir}/env",
+        "Python_FIND_STRATEGY": "LOCATION",
+        "Python_FIND_IMPLEMENTATIONS": "CPython",
+        "Python3_ROOT_DIR": "${sourceDir}/env",
+        "Python3_FIND_STRATEGY": "LOCATION",
+        "Python3_FIND_IMPLEMENTATIONS": "CPython"
+      }
+    },
+    {
+      "name": "windows-msvc-x64",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "displayName": "Windows MSVC x64",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        // compiler specific
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_C_FLAGS_INIT": "/fp:contract /fp:precise /utf-8 /openmp /volatile:iso /Zc:preprocessor /permissive-",
+        "CMAKE_CXX_FLAGS_INIT": "/fp:contract /fp:precise /utf-8 /openmp /volatile:iso /Zc:preprocessor /permissive- /EHsc /Zc:__cplusplus /Zc:enumTypes /Zc:externConstexpr /Zc:inline /Zc:lambda /Zc:throwingNew",
+        "CMAKE_EXE_LINKER_FLAGS_INIT": "/STACK:0x800000",
+        "CMAKE_EXE_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
+        "CMAKE_MFC_FLAG": "1",
+        // direct all binary outputs to the same folder due to Windows DLLs finding strategy
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin",
+        // system specific
+        "CMAKE_SYSTEM_VERSION": "10.0"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows"
+          ],
+          "intelliSenseMode": "windows-msvc-x64",
+          "enableMicrosoftCodeAnalysis": true
+        },
+        "jetbrains.com/clion": {
+          "toolchain": "Visual Studio 2022 x64"
+        }
+      }
+    },
+    {
+      "name": "windows-msvc-x64-release",
+      "inherits": "windows-msvc-x64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded"
+      }
+    }
+  ]
+}
