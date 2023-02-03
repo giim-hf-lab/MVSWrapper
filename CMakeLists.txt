@@ -27,6 +27,10 @@ option(${PROJECT_OPTIONS_PREFIX}_BUILD_SHARED "Build shared library for each com
 
 include("cmake/options.cmake" NO_POLICY_SCOPE)
 
+# create_component_options("gemalto" "Gemalto wrapper")
+# create_component_options("mvs" "HikVision MVS wrapper")
+# create_component_options("ocr" "PaddleOCR + ONNX Runtime")
+
 set(${PROJECT_OPTIONS_PREFIX}_EXPORT_DEPENDENCIES "" CACHE STRING "Extra dependencies to be exported.")
 
 # [End] Options
