@@ -1,100 +1,95 @@
 cmake_minimum_required(VERSION 3.24)
 
-set(CURRENT_PROJECT_NAME "cpp-utilities")
+set(__G_PROJECT_NAME "cpp-utilities")
 
-project(${CURRENT_PROJECT_NAME}
+project(${__G_PROJECT_NAME}
 	VERSION 0.0
 	LANGUAGES
 		CXX
 )
 
-include(CMakeDependentOption)
+include(FetchContent)
 
-find_package(Git 2.22.0)
+macro (project_message LEVEL)
+	message("${LEVEL}" "[${__G_PROJECT_NAME}] -- " ${ARGN})
+endmacro ()
 
-set(PROJECT_OPTIONS_PREFIX "UTILITIES")
-set(PROJECT_DEFINED_COMPONENTS)
+set(__G_OPTION_PREFIX "UTILITIES")
 
-# [Start] Options
-
-cmake_dependent_option(${PROJECT_OPTIONS_PREFIX}_ENSURE_SUBMODULES "Ensure submodules have been initialised." OFF "GIT_FOUND" OFF)
-option(${PROJECT_OPTIONS_PREFIX}_USE_MIMALLOC "Use mimalloc as the default allocator." ON)
-cmake_dependent_option(${PROJECT_OPTIONS_PREFIX}_USE_SECURE_MIMALLOC "Use secure mimalloc." OFF "${PROJECT_OPTIONS_PREFIX}_USE_MIMALLOC" OFF)
-
-option(${PROJECT_OPTIONS_PREFIX}_DEPENDENCIES_FAIL_FAST "Fail immediately after encoutering a non-existing submodule." ON)
-option(${PROJECT_OPTIONS_PREFIX}_BUILD_ALL "All libraries in this project will be built." ON)
-option(${PROJECT_OPTIONS_PREFIX}_BUILD_SHARED "Build shared library for each components (<COMPONENT_NAME>-shared suffix)." $<BOOL:${BUILD_SHARED_LIBS}>)
-
-include("cmake/options.cmake" NO_POLICY_SCOPE)
-
-create_component_options("filecache" "File Cache")
-# create_component_options("gemalto" "Gemalto wrapper")
-# create_component_options("mvs" "HikVision MVS wrapper")
-# create_component_options("ocr" "PaddleOCR + ONNX Runtime")
-
-set(${PROJECT_OPTIONS_PREFIX}_EXPORT_DEPENDENCIES "" CACHE STRING "Extra dependencies to be exported.")
-
-# [End] Options
-
-set(INCLUDED_DEPENDENCIES "argparse" "fmt" "spdlog")
-
-if (${PROJECT_OPTIONS_PREFIX}_USE_MIMALLOC)
-	list(APPEND INCLUDED_DEPENDENCIES "mimalloc")
+if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+	set(__G_LEGACY_ARCHITECTURE ON)
+elseif (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(__G_LEGACY_ARCHITECTURE OFF)
+else ()
+	project_message(FATAL_ERROR "Unknown pointer size: ${CMAKE_SIZEOF_VOID_P}")
 endif ()
 
-foreach (COMPONENT_NAME IN LISTS PROJECT_DEFINED_COMPONENTS)
-	set(COMPONENT_DEPS_CMAKE "cmake/comp/${COMPONENT_NAME}.deps.cmake")
-	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${COMPONENT_DEPS_CMAKE}")
-		include("${COMPONENT_DEPS_CMAKE}" NO_POLICY_SCOPE)
-	endif ()
-endforeach ()
+include("cmake/utils.cmake" NO_POLICY_SCOPE)
 
-list(APPEND INCLUDED_DEPENDENCIES ${${PROJECT_OPTIONS_PREFIX}_EXPORT_DEPENDENCIES})
+prefixed_option(FETCHCONTENT_BASE_DIR "" "The FETCHCONTENT_BASE_DIR variable for the current project."
+	REFERENCE
+	TYPE PATH
+)
+prefixed_option(FETCHCONTENT_GIT_SHALLOW ON "Fetch git repository as a shallow clone.")
+prefixed_option(FETCHCONTENT_GIT_USE_SSH OFF "Use SSH to fetch git repository.")
+prefixed_option(FETCHCONTENT_GITHUB_USE_SSH "FETCHCONTENT_GIT_USE_SSH" "Use SSH to fetch GitHub repository."
+	REFERENCE
+	PREFIX_REFERENCE
+)
 
-list(REMOVE_DUPLICATES INCLUDED_DEPENDENCIES)
-set(INCLUDED_SUBMODULES)
-foreach (DEPENDENCY IN LISTS INCLUDED_DEPENDENCIES)
-	set(SUBMODULE "ext/${DEPENDENCY}")
-	if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${SUBMODULE}")
-		list(APPEND INCLUDED_SUBMODULES "${SUBMODULE}")
-	else ()
-		set(ERROR_MESSAGE "[${CURRENT_PROJECT_NAME}] Dependency ${DEPENDENCY} is not a submodule.")
-		if (${PROJECT_OPTIONS_PREFIX}_DEPENDENCIES_FAIL_FAST)
-			message(FATAL_ERROR "${ERROR_MESSAGE}")
-		else ()
-			message(WARNING "${ERROR_MESSAGE} Ignoring...")
-		endif ()
-	endif ()
-endforeach ()
+prefixed_option(BUILD ON "Export all static library targets."
+	EXTRA_PREFIXES
+		"ALL"
+)
+prefixed_option(BUILD_EXAMPLES "" "Export all sample program targets."
+	REFERENCE
+	EXTRA_PREFIXES
+		"ALL"
+)
+prefixed_option(BUILD_SHARED_LIBS "" "Export all shared library targets."
+	REFERENCE
+	EXTRA_PREFIXES
+		"ALL"
+)
+prefixed_option(BUILD_TESTING "" "Export all shared library targets."
+	REFERENCE
+	EXTRA_PREFIXES
+		"ALL"
+)
 
-string(JOIN ", " INCLUDED_SUBMODULES_STRING ${INCLUDED_SUBMODULES})
-message(STATUS "[${CURRENT_PROJECT_NAME}] Build with the following submodules: ${INCLUDED_SUBMODULES_STRING}")
-if (UTILITIES_ENSURE_SUBMODULES)
-	message(STATUS "[${CURRENT_PROJECT_NAME}] Running submodule update as requested...")
-	execute_process(
-		COMMAND ${GIT_EXECUTABLE}
-			"submodule"
-			"update"
-			"--force"
-			"--init"
-			"--recursive"
-			${INCLUDED_SUBMODULES}
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-		COMMAND_ECHO STDOUT
-		COMMAND_ERROR_IS_FATAL ANY
-	)
+get_prefixed_option(FETCHCONTENT_BASE_DIR)
+get_prefixed_option(FETCHCONTENT_GIT_SHALLOW OUTPUT_PREFIXES "__G")
+get_prefixed_option(FETCHCONTENT_GITHUB_USE_SSH OUTPUT_PREFIXES "__G")
+
+if (__G_FETCHCONTENT_GITHUB_USE_SSH)
+	set(__C_GITHUB_PREFIX "git@github.com:" CACHE INTERNAL "" FORCE)
+else ()
+	set(__C_GITHUB_PREFIX "https://github.com/" CACHE INTERNAL "" FORCE)
 endif ()
-foreach (SUBMODULE IN LISTS INCLUDED_SUBMODULES)
-	set(SUBMODULE_CMAKE "cmake/${SUBMODULE}.cmake")
-	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SUBMODULE_CMAKE}")
-		include("${SUBMODULE_CMAKE}" NO_POLICY_SCOPE)
-	else ()
-		add_subdirectory("${SUBMODULE}" EXCLUDE_FROM_ALL)
-	endif ()
+
+set(__G_GENERATED_FILES_DIR "${CMAKE_BINARY_DIR}/_gen")
+
+set(ARGPARSE_VERSION "2.9")
+set(FMT_VERSION "9.1.0")
+set(FREETYPE_VERSION "2.13.0")
+set(HARFBUZZ_VERSION "7.0.1")
+set(MIMALLOC_VERSION "2.0.9")
+set(MIO_VERSION "master")
+set(OPENCV_VERSION "4.7.0")
+set(SPDLOG_VERSION "1.11.0")
+
+foreach (__L_DEPENDENCY_NAME
+	"argparse"
+	"fmt"
+	"mimalloc"
+	"mio"
+	"spdlog"
+
+	"opencv"
+
+	"mvs"
+
+	"paddle"
+)
+	add_subdirectory("cmake/deps/${__L_DEPENDENCY_NAME}" EXCLUDE_FROM_ALL)
 endforeach ()
-
-include("cmake/cxx_module.cmake" NO_POLICY_SCOPE)
-
-set(PROJECT_ALIAS_NAMESPACE "utilities")
-
-add_subdirectory("comp" EXCLUDE_FROM_ALL)

@@ -1,3 +1,0 @@
-set(FMT_SYSTEM_HEADERS ON)
-
-add_subdirectory("${SUBMODULE}" EXCLUDE_FROM_ALL)

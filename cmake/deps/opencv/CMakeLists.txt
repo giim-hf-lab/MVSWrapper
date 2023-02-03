@@ -1,0 +1,115 @@
+prefixed_option(EXPORT_OPENCV OFF "Export OpenCV targets.")
+
+get_prefixed_option(EXPORT_OPENCV OUTPUT_PREFIXES "__G")
+
+if (__G_EXPORT_OPENCV)
+	prefixed_option(OPENCV_CONTRIB_MODULES "" "OpenCV Contrib modules to be exported.")
+
+	get_prefixed_option(OPENCV_CONTRIB_MODULES OUTPUT_PREFIXES "__L")
+
+	if (__L_OPENCV_CONTRIB_MODULES)
+		FetchContent_Declare(opencv_contrib
+			GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}opencv/opencv_contrib.git"
+			GIT_TAG "${OPENCV_VERSION}"
+			GIT_SUBMODULES_RECURSE TRUE
+			GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
+			GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+		)
+		FetchContent_Populate(opencv_contrib)
+
+		cmake_path(APPEND __G_GENERATED_FILES_DIR
+			"opencv_extra_modules"
+			OUTPUT_VARIABLE OPENCV_EXTRA_MODULES_PATH
+		)
+		file(MAKE_DIRECTORY "${OPENCV_EXTRA_MODULES_PATH}")
+
+		FetchContent_GetProperties(opencv_contrib SOURCE_DIR __L_OPENCV_CONTRIB_DIR)
+		foreach (__L_MODULE ${__L_OPENCV_CONTRIB_MODULES})
+			cmake_path(APPEND __L_OPENCV_CONTRIB_DIR
+				"modules"
+				"${__L_MODULE}"
+				OUTPUT_VARIABLE __L_EXTRA_MODULE_PATH
+			)
+			if (EXISTS "${__L_EXTRA_MODULE_PATH}")
+				file(CREATE_LINK "${__L_EXTRA_MODULE_PATH}" "${OPENCV_EXTRA_MODULES_PATH}/${__L_MODULE}" SYMBOLIC)
+			else ()
+				project_message(FATAL_ERROR "Extra module '${__L_MODULE}' does not exist.")
+			endif ()
+			include("extras/${__L_MODULE}.cmake" NO_POLICY_SCOPE)
+		endforeach ()
+	endif ()
+
+	cmake_path(APPEND __G_GENERATED_FILES_DIR
+		"opencv"
+		OUTPUT_VARIABLE OPENCV_CONFIG_FILE_INCLUDE_DIR
+	)
+	set(OPENCV_ENABLE_NONFREE ON)
+	set(OPENCV_FORCE_3RDPARTY_BUILD ON)
+	set(WITH_CUDA OFF)
+	set(WITH_FFMPEG OFF)
+	set(WITH_IPP OFF)
+	set(WITH_OPENMP ON)
+	set(WITH_PROTOBUF OFF)
+	set(BUILD_opencv_apps OFF)
+	set(BUILD_JAVA OFF)
+	set(BUILD_opencv_python2 OFF)
+	set(BUILD_opencv_python3 OFF)
+	set(CV_TRACE OFF)
+
+	FetchContent_Declare(opencv
+		GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}opencv/opencv.git"
+		GIT_TAG "${OPENCV_VERSION}"
+		GIT_SUBMODULES_RECURSE TRUE
+		GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
+		GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+		OVERRIDE_FIND_PACKAGE
+	)
+
+	find_package(opencv "${OPENCV_VERSION}" REQUIRED GLOBAL)
+
+	set_property(
+		TARGET
+			$CACHE{OPENCV_MODULES_PUBLIC}
+		PROPERTY SYSTEM TRUE
+	)
+
+	FetchContent_GetProperties(opencv SOURCE_DIR __L_OPENCV_DIR)
+	cmake_path(APPEND __L_OPENCV_DIR
+		"include"
+		OUTPUT_VARIABLE __L_OPENCV_MODULES_INCLUDE_DIR
+	)
+
+	foreach (__L_OPENCV_MODULE $CACHE{OPENCV_MODULES_PUBLIC})
+		string(REPLACE "_" ";" __L_OPENCV_MODULE_FRAGMENTS "${__L_OPENCV_MODULE}")
+		list(GET __L_OPENCV_MODULE_FRAGMENTS 0 __L_OPENCV_MODULE_PREFIX)
+		if (NOT "${__L_OPENCV_MODULE_PREFIX}" STREQUAL "opencv")
+			project_message(FATAL_ERROR "Invalid OpenCV module name ${__L_OPENCV_MODULE}.")
+		endif ()
+
+		string(JOIN "::" __L_OPENCV_MODULE_ALIAS ${__L_OPENCV_MODULE_FRAGMENTS})
+		add_library("${__L_OPENCV_MODULE_ALIAS}" ALIAS "${__L_OPENCV_MODULE}")
+
+		list(POP_FRONT __L_OPENCV_MODULE_FRAGMENTS)
+		string(JOIN "_" __L_OPENCV_MODULE_TRIMMED ${__L_OPENCV_MODULE_FRAGMENTS})
+		if (__L_OPENCV_MODULE_TRIMMED IN_LIST __L_OPENCV_CONTRIB_MODULES)
+			cmake_path(APPEND OPENCV_EXTRA_MODULES_PATH
+				${__L_OPENCV_MODULE_FRAGMENTS}
+				"include"
+				OUTPUT_VARIABLE __L_OPENCV_MODULE_INCLUDE_DIR
+			)
+		else ()
+			cmake_path(APPEND __L_OPENCV_DIR
+				"modules"
+				${__L_OPENCV_MODULE_FRAGMENTS}
+				"include"
+				OUTPUT_VARIABLE __L_OPENCV_MODULE_INCLUDE_DIR
+			)
+		endif ()
+		target_include_directories("${__L_OPENCV_MODULE}"
+			INTERFACE
+				"$<BUILD_INTERFACE:${OPENCV_CONFIG_FILE_INCLUDE_DIR}>"
+				"$<BUILD_INTERFACE:${__L_OPENCV_MODULES_INCLUDE_DIR}>"
+				"$<BUILD_INTERFACE:${__L_OPENCV_MODULE_INCLUDE_DIR}>"
+		)
+	endforeach ()
+endif ()
