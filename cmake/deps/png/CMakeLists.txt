@@ -1,0 +1,40 @@
+prefixed_option(PNG_SHARED "BUILD_SHARED_LIBS" "Build shared mimalloc."
+	REFERENCE
+)
+prefixed_option(PNG_TESTS "BUILD_TESTING" "Build mimalloc test targets."
+	REFERENCE
+)
+
+set(PNG_BUILD_ZLIB OFF)
+get_prefixed_option(PNG_SHARED)
+set(PNG_STATIC ON)
+get_prefixed_option(PNG_TESTS)
+set(PNG_HARDWARE_OPTIMIZATIONS ON)
+
+FetchContent_Declare(png
+	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}glennrp/libpng.git"
+	GIT_TAG "v${PNG_VERSION}"
+	GIT_SUBMODULES_RECURSE TRUE
+	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
+	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+	OVERRIDE_FIND_PACKAGE
+)
+
+find_package(png REQUIRED GLOBAL)
+
+FetchContent_GetProperties(png SOURCE_DIR __L_PNG_DIR BINARY_DIR __L_PNG_BINARY_DIR)
+
+set(__L_TARGETS "png_static")
+if(PNG_SHARED)
+	list(APPEND __L_TARGETS "png")
+endif()
+set_property(
+	TARGET
+		${__L_TARGETS}
+	PROPERTY SYSTEM TRUE
+)
+
+set(PNG_FOUND TRUE PARENT_SCOPE)
+set(PNG_INCLUDE_DIRS "${__L_PNG_DIR}" "${__L_PNG_BINARY_DIR}" PARENT_SCOPE)
+set(PNG_LIBRARY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/png_static.lib" PARENT_SCOPE)
+set(PNG_LIBRARIES ${PNG_LIBRARY} PARENT_SCOPE)

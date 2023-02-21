@@ -76,6 +76,7 @@ set(HARFBUZZ_VERSION "7.0.1")
 set(MIMALLOC_VERSION "2.0.9")
 set(MIO_VERSION "master")
 set(OPENCV_VERSION "4.7.0")
+set(PNG_VERSION "1.6.39")
 set(SPDLOG_VERSION "1.11.0")
 set(ZLIB_VERSION "1.2.13")
 
@@ -85,7 +86,9 @@ foreach (__L_DEPENDENCY_NAME
 	"mimalloc"
 	"mio"
 	"spdlog"
+
 	"zlib"
+	"png"
 
 	"opencv"
 
