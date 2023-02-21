@@ -22,3 +22,17 @@ set_property(
 		harfbuzz
 	PROPERTY SYSTEM TRUE
 )
+
+set(HARFBUZZ_FOUND TRUE)
+get_property(HARFBUZZ_INCLUDE_DIRS
+	TARGET harfbuzz
+	PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+)
+set(HARFBUZZ_LIBRARIES "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/harfbuzz.lib")
+if (WIN32)
+	list(APPEND HARFBUZZ_LIBRARIES
+		"gdi32"
+		"usp10"
+		"rpcrt4"
+	)
+endif ()

@@ -77,6 +77,7 @@ set(MIMALLOC_VERSION "2.0.9")
 set(MIO_VERSION "master")
 set(OPENCV_VERSION "4.7.0")
 set(SPDLOG_VERSION "1.11.0")
+set(ZLIB_VERSION "1.2.13")
 
 foreach (__L_DEPENDENCY_NAME
 	"argparse"
@@ -84,6 +85,7 @@ foreach (__L_DEPENDENCY_NAME
 	"mimalloc"
 	"mio"
 	"spdlog"
+	"zlib"
 
 	"opencv"
 
