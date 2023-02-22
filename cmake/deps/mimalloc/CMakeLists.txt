@@ -16,8 +16,6 @@ set(MI_BUILD_OBJECT ON)
 get_prefixed_option(TEST_MIMALLOC OUTPUT_VARIABLE MI_BUILD_TESTS)
 set(MI_USE_CXX ON)
 
-project_message(STATUS "MI_BUILD_TESTS: ${MI_BUILD_TESTS}")
-
 FetchContent_Declare(mimalloc
 	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}microsoft/mimalloc.git"
 	GIT_TAG "v${MIMALLOC_VERSION}"

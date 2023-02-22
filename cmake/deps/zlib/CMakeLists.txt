@@ -10,6 +10,7 @@ FetchContent_Declare(zlib
 find_package(zlib REQUIRED GLOBAL)
 
 FetchContent_GetProperties(zlib SOURCE_DIR __L_ZLIB_DIR BINARY_DIR __L_ZLIB_BINARY_DIR)
+file(CREATE_LINK "${__L_ZLIB_BINARY_DIR}/zconf.h" "${__L_ZLIB_DIR}/zconf.h" SYMBOLIC)
 
 set_property(
 	TARGET
@@ -21,5 +22,5 @@ set_property(
 get_archive_path("zlibstatic" __L_ZLIB_LIBRARY)
 
 set(ZLIB_FOUND TRUE PARENT_SCOPE)
-set(ZLIB_INCLUDE_DIRS "${__L_ZLIB_DIR}" "${__L_ZLIB_BINARY_DIR}" PARENT_SCOPE)
+set(ZLIB_INCLUDE_DIRS "${__L_ZLIB_DIR}" PARENT_SCOPE)
 set(ZLIB_LIBRARIES "${__L_ZLIB_LIBRARY}" PARENT_SCOPE)
