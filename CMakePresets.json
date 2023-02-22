@@ -101,6 +101,14 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded"
       }
-    }
+    },
+    {
+      "name": "windows-msvc-x64-debug",
+      "inherits": "windows-msvc-x64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug"
+      }
+    },
   ]
 }

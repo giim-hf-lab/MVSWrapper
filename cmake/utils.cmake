@@ -93,3 +93,11 @@ function (get_prefixed_option NAME)
 	string(JOIN "_" __P_OUTPUT_VARIABLE ${__P_OUTPUT_PREFIXES} "${__P_OUTPUT_VARIABLE}")
 	set("${__P_OUTPUT_VARIABLE}" ${${__L_OPTION_NAME}} PARENT_SCOPE)
 endfunction ()
+
+function (get_archive_path TARGET OUTPUT_VARIABLE)
+	get_property(__L_TARGET_POSTFIX
+		TARGET "${TARGET}"
+		PROPERTY "${__G_BUILD_TYPE_UPPER}_POSTFIX"
+	)
+	set("${OUTPUT_VARIABLE}" "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${TARGET}${__L_TARGET_POSTFIX}.lib" PARENT_SCOPE)
+endfunction ()

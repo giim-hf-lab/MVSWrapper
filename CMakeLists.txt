@@ -8,6 +8,8 @@ project(${__G_PROJECT_NAME}
 		CXX
 )
 
+string(TOUPPER "${CMAKE_BUILD_TYPE}" __G_BUILD_TYPE_UPPER)
+
 include(FetchContent)
 
 macro (project_message LEVEL)
