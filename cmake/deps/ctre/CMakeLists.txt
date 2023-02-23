@@ -1,0 +1,16 @@
+FetchContent_Declare(ctre
+	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}hanickadot/compile-time-regular-expressions.git"
+	GIT_TAG "v${CTRE_VERSION}"
+	GIT_SUBMODULES_RECURSE TRUE
+	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
+	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+	OVERRIDE_FIND_PACKAGE
+)
+
+find_package(ctre REQUIRED)
+
+set_property(
+	TARGET
+		ctre
+	PROPERTY SYSTEM TRUE
+)

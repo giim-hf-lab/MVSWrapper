@@ -72,6 +72,7 @@ endif ()
 set(__G_GENERATED_FILES_DIR "${CMAKE_BINARY_DIR}/_gen")
 
 set(ARGPARSE_VERSION "2.9")
+set(CTRE_VERSION "3.7.2")
 set(FMT_VERSION "9.1.0")
 set(FREETYPE_VERSION "2.13.0")
 set(HARFBUZZ_VERSION "7.0.1")
@@ -84,6 +85,7 @@ set(ZLIB_VERSION "1.2.13")
 
 foreach (__L_DEPENDENCY_NAME
 	"argparse"
+	"ctre"
 	"fmt"
 	"mimalloc"
 	"mio"
