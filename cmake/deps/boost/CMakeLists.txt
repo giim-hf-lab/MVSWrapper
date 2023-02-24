@@ -1,0 +1,41 @@
+set(__L_BOOST_REQUIRED_SUBMODULES "tools/cmake")
+set(__L_BOOST_REQUIRED_COMPONENTS
+	"align"
+	"array"
+	"assert"
+	"config"
+	"core"
+	"io"
+	"mpl"
+	"predef"
+	"preprocessor"
+	"static_assert"
+	"throw_exception"
+	"type_traits"
+	"utility"
+)
+
+list(REMOVE_DUPLICATES __L_BOOST_REQUIRED_COMPONENTS)
+set(BOOST_INCLUDE_LIBRARIES ${__L_BOOST_REQUIRED_COMPONENTS})
+
+set(BOOST_ENABLE_PYTHON OFF)
+set(BOOST_RUNTIME_LINK "static")
+
+set(BOOST_IOSTREAMS_ENABLE_ZLIB ON)
+
+foreach (__L_COMPONENT ${__L_BOOST_REQUIRED_COMPONENTS})
+	list(APPEND __L_BOOST_REQUIRED_SUBMODULES "libs/${__L_COMPONENT}")
+endforeach ()
+
+FetchContent_Declare(Boost
+	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}boostorg/boost.git"
+	GIT_TAG "boost-$CACHE{__C_BOOST_VERSION}"
+	GIT_SUBMODULES
+		${__L_BOOST_REQUIRED_SUBMODULES}
+	GIT_SUBMODULES_RECURSE TRUE
+	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
+	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+	OVERRIDE_FIND_PACKAGE
+)
+
+find_package(Boost "$CACHE{__C_BOOST_VERSION}" REQUIRED GLOBAL)

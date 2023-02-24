@@ -10,7 +10,7 @@ if (__G_EXPORT_OPENCV)
 	if (__L_OPENCV_CONTRIB_MODULES)
 		FetchContent_Declare(opencv_contrib
 			GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}opencv/opencv_contrib.git"
-			GIT_TAG "${OPENCV_VERSION}"
+			GIT_TAG "$CACHE{__C_OPENCV_VERSION}"
 			GIT_SUBMODULES_RECURSE TRUE
 			GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 			GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
@@ -35,7 +35,6 @@ if (__G_EXPORT_OPENCV)
 			else ()
 				project_message(FATAL_ERROR "Extra module '${__L_MODULE}' does not exist.")
 			endif ()
-			include("extras/${__L_MODULE}.cmake" NO_POLICY_SCOPE)
 		endforeach ()
 	endif ()
 
@@ -58,16 +57,16 @@ if (__G_EXPORT_OPENCV)
 	set(BUILD_opencv_python3 OFF)
 	set(CV_TRACE OFF)
 
-	FetchContent_Declare(opencv
+	FetchContent_Declare(OpenCV
 		GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}opencv/opencv.git"
-		GIT_TAG "${OPENCV_VERSION}"
+		GIT_TAG "$CACHE{__C_OPENCV_VERSION}"
 		GIT_SUBMODULES_RECURSE TRUE
 		GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 		GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
 		OVERRIDE_FIND_PACKAGE
 	)
 
-	find_package(opencv "${OPENCV_VERSION}" REQUIRED GLOBAL)
+	find_package(OpenCV "$CACHE{__C_OPENCV_VERSION}" REQUIRED GLOBAL)
 
 	set_property(
 		TARGET
@@ -75,7 +74,7 @@ if (__G_EXPORT_OPENCV)
 		PROPERTY SYSTEM TRUE
 	)
 
-	FetchContent_GetProperties(opencv SOURCE_DIR __L_OPENCV_DIR)
+	FetchContent_GetProperties(OpenCV SOURCE_DIR __L_OPENCV_DIR)
 	cmake_path(APPEND __L_OPENCV_DIR
 		"include"
 		OUTPUT_VARIABLE __L_OPENCV_MODULES_INCLUDE_DIR

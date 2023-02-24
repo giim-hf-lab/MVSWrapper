@@ -1,0 +1,19 @@
+set(JSON_GlobalUDLs OFF)
+set(JSON_ImplicitConversions OFF)
+
+FetchContent_Declare(nlohmann_json
+	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}nlohmann/json.git"
+	GIT_TAG "v$CACHE{__C_NLOHMANN_JSON_VERSION}"
+	GIT_SUBMODULES_RECURSE TRUE
+	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
+	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+	OVERRIDE_FIND_PACKAGE
+)
+
+find_package(nlohmann_json "$CACHE{__C_NLOHMANN_JSON_VERSION}" REQUIRED GLOBAL)
+
+set_property(
+	TARGET
+		nlohmann_json
+	PROPERTY SYSTEM TRUE
+)
