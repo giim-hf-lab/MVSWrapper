@@ -112,3 +112,12 @@ function (get_archive_path TARGET OUTPUT_VARIABLE)
 	)
 	set("${OUTPUT_VARIABLE}" "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${__L_TARGET_PREFIX}${__L_TARGET_OUTPUT_NAME}${__L_TARGET_POSTFIX}.lib" PARENT_SCOPE)
 endfunction ()
+
+function (create_library_target NAME PREFIX OUTPUT_VARIABLE)
+	set(__L_CANONICAL_NAME "${PREFIX}_${NAME}")
+	set(__L_NAMESPACE_NAME "${PREFIX}::${NAME}")
+	add_library("${__L_CANONICAL_NAME}" ${ARGN})
+	add_library("${__L_NAMESPACE_NAME}" ALIAS "${__L_CANONICAL_NAME}")
+
+	set("${OUTPUT_VARIABLE}" "${__L_CANONICAL_NAME}" PARENT_SCOPE)
+endfunction ()

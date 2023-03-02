@@ -1,3 +1,0 @@
-foreach (COMPONENT_NAME IN LISTS PROJECT_DEFINED_COMPONENTS)
-	add_subdirectory("${COMPONENT_NAME}" EXCLUDE_FROM_ALL)
-endforeach ()

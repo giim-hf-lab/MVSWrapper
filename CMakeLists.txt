@@ -121,3 +121,11 @@ foreach (__L_DEPENDENCY_NAME
 )
 	add_subdirectory("cmake/deps/${__L_DEPENDENCY_NAME}" EXCLUDE_FROM_ALL)
 endforeach ()
+
+string(TOLOWER "${__G_OPTION_PREFIX}" __G_NAMESPACE)
+
+foreach (__L_COMPONENT_NAME
+	"winutils"
+)
+	add_subdirectory("comp/${__L_COMPONENT_NAME}" EXCLUDE_FROM_ALL)
+endforeach ()
