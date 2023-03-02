@@ -1,12 +1,7 @@
-# Inference Engine in C++
+# C++ Utilities Collection
 
-The project is written in C++20 (without the new module system) and is intended to be used as a framework in the future.
+This repository is intended to be used as a super project merged from two repositories.
 
-In the current status, however, the CMakeLists.txt is just for experimental use, and it doesn't actually meet the requirements to build the artifacts as a valid CMake target, nor does it compile to any shared or static libraries. The compilation output is more like demos of how this framework should be used.
+All external dependencies are now included via the CMake `FetchContent` module available since version 3.11 instead of the old style project structure (Git submodules).
 
-## TODO
-
-- LibTorch
-  - [ ] YOLOv5
-- ONNX Runtime
-  - [ ] OCR
+The original plan was to include C++20 module as part of the interface exposed, but the support of C++20 module is experimental in most of the toolchains (including compilers, IDEs and CMake itself). So the support of C++20 module has been dropped and only the legacy interface (C++ headers) will be provided.

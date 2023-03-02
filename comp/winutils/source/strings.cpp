@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -9,38 +11,92 @@
 namespace std
 {
 
-void to_string(const wstring_view& str, string& out, bool native)
+void to_string(error_code& ec, const wstring_view& str, string& out, bool native, bool low_memory) noexcept
 {
-	out.resize(str.size() * 4);
+	const auto code_page = native ? CP_ACP : CP_UTF8;
+
+	size_t estimated;
+	if (low_memory)
+	{
+		estimated = ::WideCharToMultiByte(
+			code_page,
+			0,
+			str.data(),
+			str.size(),
+			nullptr,
+			0,
+			nullptr,
+			nullptr
+		);
+		if (!estimated)
+		{
+			ec.assign(::GetLastError(), system_category());
+			out.clear();
+			return;
+		}
+	}
+	else
+		estimated = str.size() * 4;
+
+	out.resize(estimated);
 	if (auto size = ::WideCharToMultiByte(
-		native ? CP_ACP : CP_UTF8,
+		code_page,
 		0,
 		str.data(),
 		str.size(),
 		out.data(),
-		out.size(),
+		estimated,
 		nullptr,
 		nullptr
-	); !size)
-		throw system_error(::GetLastError(), system_category());
-	else
+	))
 		out.resize(size);
+	else
+	{
+		ec.assign(::GetLastError(), system_category());
+		out.clear();
+	}
 }
 
-void to_wstring(const string_view& str, wstring& out, bool native)
+void to_wstring(error_code& ec, const string_view& str, wstring& out, bool native, bool low_memory) noexcept
 {
-	out.resize(str.size() * 2);
+	const auto code_page = native ? CP_ACP : CP_UTF8;
+
+	size_t estimated;
+	if (low_memory)
+	{
+		estimated = ::MultiByteToWideChar(
+			code_page,
+			0,
+			str.data(),
+			str.size(),
+			nullptr,
+			0
+		);
+		if (!estimated)
+		{
+			ec.assign(::GetLastError(), system_category());
+			out.clear();
+			return;
+		}
+	}
+	else
+		estimated = str.size() * 2;
+
+	out.resize(estimated);
 	if (auto size = ::MultiByteToWideChar(
-		native ? CP_ACP : CP_UTF8,
+		code_page,
 		0,
 		str.data(),
 		str.size(),
 		out.data(),
-		out.size()
-	); !size)
-		throw system_error(::GetLastError(), system_category());
-	else
+		estimated
+	))
 		out.resize(size);
+	else
+	{
+		ec.assign(::GetLastError(), system_category());
+		out.clear();
+	}
 }
 
 }
