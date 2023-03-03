@@ -125,6 +125,7 @@ endforeach ()
 string(TOLOWER "${__G_OPTION_PREFIX}" __G_NAMESPACE)
 
 foreach (__L_COMPONENT_NAME
+	"camera"
 	"winutils"
 )
 	add_subdirectory("comp/${__L_COMPONENT_NAME}" EXCLUDE_FROM_ALL)
