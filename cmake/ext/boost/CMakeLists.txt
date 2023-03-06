@@ -27,9 +27,11 @@ foreach (__L_COMPONENT ${__L_BOOST_REQUIRED_COMPONENTS})
 	list(APPEND __L_BOOST_REQUIRED_SUBMODULES "libs/${__L_COMPONENT}")
 endforeach ()
 
-FetchContent_Declare(Boost
-	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}boostorg/boost.git"
-	GIT_TAG "boost-$CACHE{__C_BOOST_VERSION}"
+get_ext_version(boost __L_VERSION)
+
+FetchContent_Declare(boost
+	GIT_REPOSITORY "${__G_GITHUB_PREFIX}boostorg/boost.git"
+	GIT_TAG "boost-${__L_VERSION}"
 	GIT_SUBMODULES
 		${__L_BOOST_REQUIRED_SUBMODULES}
 	GIT_SUBMODULES_RECURSE TRUE
@@ -38,4 +40,8 @@ FetchContent_Declare(Boost
 	OVERRIDE_FIND_PACKAGE
 )
 
-find_package(Boost "$CACHE{__C_BOOST_VERSION}" REQUIRED GLOBAL)
+FetchContent_MakeAvailable(boost)
+
+foreach (__L_MODULE ${__L_BOOST_REQUIRED_COMPONENTS})
+	set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "boost_${__L_MODULE}")
+endforeach ()

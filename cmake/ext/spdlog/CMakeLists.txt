@@ -1,30 +1,32 @@
 prefixed_option(SPDLOG_DISABLE_DEFAULT_LOGGER ON "Disable SPDLOG default logger.")
 
-get_prefixed_option(SPDLOG_DISABLE_DEFAULT_LOGGER)
+set(SPDLOG_BUILD_WARNINGS ON)
+set(SPDLOG_USE_STD_FORMAT OFF)
 set(SPDLOG_FMT_EXTERNAL ON)
 set(SPDLOG_FMT_EXTERNAL_HO OFF)
 set(SPDLOG_NO_EXCEPTIONS OFF)
-set(SPDLOG_USE_STD_FORMAT OFF)
+set(SPDLOG_PREVENT_CHILD_FD OFF)
+set(SPDLOG_NO_THREAD_ID OFF)
+set(SPDLOG_NO_TLS OFF)
+
+get_prefixed_option(SPDLOG_DISABLE_DEFAULT_LOGGER)
 
 if (WIN32)
 	set(SPDLOG_WCHAR_SUPPORT ON)
 	set(SPDLOG_WCHAR_FILENAMES ON)
 endif ()
 
+get_ext_version(spdlog __L_VERSION)
+
 FetchContent_Declare(spdlog
-	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}gabime/spdlog.git"
-	GIT_TAG "v$CACHE{__C_SPDLOG_VERSION}"
+	GIT_REPOSITORY "${__G_GITHUB_PREFIX}gabime/spdlog.git"
+	GIT_TAG "v${__L_VERSION}"
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
 	OVERRIDE_FIND_PACKAGE
 )
 
-find_package(spdlog "$CACHE{__C_SPDLOG_VERSION}" REQUIRED GLOBAL)
+FetchContent_MakeAvailable(spdlog)
 
-set_property(
-	TARGET
-		spdlog
-		spdlog_header_only
-	PROPERTY SYSTEM TRUE
-)
+set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "spdlog" "spdlog_header_only")

@@ -8,15 +8,29 @@ project(${__G_PROJECT_NAME}
 		CXX
 )
 
-string(TOUPPER "${CMAKE_BUILD_TYPE}" __G_BUILD_TYPE_UPPER)
-
 include(FetchContent)
+include("cmake/utils.cmake" NO_POLICY_SCOPE)
 
-macro (project_message LEVEL)
-	message("${LEVEL}" "[${__G_PROJECT_NAME}] -- " ${ARGN})
-endmacro ()
+enforce(CMAKE_POLICY_DEFAULT_CMP0054 NEW)
+enforce(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+enforce(CMAKE_POLICY_DEFAULT_CMP0097 NEW)
+enforce(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
+enforce(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 
-set(__G_OPTION_PREFIX "UTILITIES")
+enforce(CMAKE_C_STANDARD 17)
+enforce(CMAKE_C_STANDARD_REQUIRED TRUE)
+enforce(CMAKE_C_EXTENSIONS FALSE)
+enforce(CMAKE_CXX_STANDARD 20)
+enforce(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+enforce(CMAKE_CXX_EXTENSIONS FALSE)
+
+enforce(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL TRUE)
+enforce(CMAKE_TLS_VERIFY TRUE)
+
+string(TOUPPER "${CMAKE_BUILD_TYPE}" __G_BUILD_TYPE_UPPER)
+set(__G_CACHE_PREFIX "UTILITIES")
+set(__G_GENERATED_FILES_DIR "${CMAKE_BINARY_DIR}/_gen")
+string(TOLOWER "${__G_CACHE_PREFIX}" __G_NAMESPACE)
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)
 	set(__G_LEGACY_ARCHITECTURE ON)
@@ -25,8 +39,6 @@ elseif (CMAKE_SIZEOF_VOID_P EQUAL 8)
 else ()
 	project_message(FATAL_ERROR "Unknown pointer size: ${CMAKE_SIZEOF_VOID_P}")
 endif ()
-
-include("cmake/utils.cmake" NO_POLICY_SCOPE)
 
 prefixed_option(FETCHCONTENT_BASE_DIR "" "The FETCHCONTENT_BASE_DIR variable for the current project."
 	REFERENCE
@@ -43,90 +55,112 @@ prefixed_option(FETCHCONTENT_GITLAB_USE_SSH "FETCHCONTENT_GIT_USE_SSH" "Use SSH 
 	PREFIX_REFERENCE
 )
 
-prefixed_option(BUILD ON "Export all static library targets."
-	EXTRA_PREFIXES
-		"ALL"
-)
-prefixed_option(BUILD_EXAMPLES "" "Export all sample program targets."
-	REFERENCE
-	EXTRA_PREFIXES
-		"ALL"
-)
-prefixed_option(BUILD_SHARED_LIBS "" "Export all shared library targets."
-	REFERENCE
-	EXTRA_PREFIXES
-		"ALL"
-)
-prefixed_option(BUILD_TESTING "" "Export all shared library targets."
-	REFERENCE
-	EXTRA_PREFIXES
-		"ALL"
-)
-
 get_prefixed_option(FETCHCONTENT_BASE_DIR)
 get_prefixed_option(FETCHCONTENT_GIT_SHALLOW OUTPUT_PREFIXES "__G")
 get_prefixed_option(FETCHCONTENT_GITHUB_USE_SSH OUTPUT_PREFIXES "__G")
 get_prefixed_option(FETCHCONTENT_GITLAB_USE_SSH OUTPUT_PREFIXES "__G")
 
 if (__G_FETCHCONTENT_GITHUB_USE_SSH)
-	set(__C_GITHUB_PREFIX "git@github.com:" CACHE INTERNAL "" FORCE)
+	set(__G_GITHUB_PREFIX "git@github.com:")
 else ()
-	set(__C_GITHUB_PREFIX "https://github.com/" CACHE INTERNAL "" FORCE)
+	set(__G_GITHUB_PREFIX "https://github.com/")
 endif ()
 
 if (__G_FETCHCONTENT_GITLAB_USE_SSH)
-	set(__C_GITLAB_PREFIX "git@gitlab.com:" CACHE INTERNAL "" FORCE)
+	set(__G_GITLAB_PREFIX "git@gitlab.com:")
 else ()
-	set(__C_GITLAB_PREFIX "https://gitlab.com/" CACHE INTERNAL "" FORCE)
+	set(__G_GITLAB_PREFIX "https://gitlab.com/")
 endif ()
 
-set(__G_GENERATED_FILES_DIR "${CMAKE_BINARY_DIR}/_gen")
+set_internal_cache(EXTERNAL_DEPENDENCIES FALSE)
+set_ext_version(argparse "2.9")
+set_ext_version(boost "1.81.0")
+set_ext_version(ctre "3.7.2")
+set_ext_version(fmt "9.1.0")
+set_ext_version(freetype "2.13.0")
+set_ext_version(harfbuzz "7.1.0")
+set_ext_version(nlohmann_json "3.11.2")
+set_ext_version(mimalloc "2.0.9")
+set_ext_version(opencv "4.7.0")
+set_ext_version(paddle "2.4.2")
+set_ext_version(png "1.6.39")
+set_ext_version(spdlog "1.11.0")
+set_ext_version(xlnt "1.5.0")
+set_ext_version(xlsxwriter "1.1.5")
+set_ext_version(zlib "1.2.13")
 
-set(__C_ARGPARSE_VERSION "2.9" CACHE INTERNAL "" FORCE)
-set(__C_BOOST_VERSION "1.81.0" CACHE INTERNAL "" FORCE)
-set(__C_CTRE_VERSION "3.7.2" CACHE INTERNAL "" FORCE)
-set(__C_FMT_VERSION "9.1.0" CACHE INTERNAL "" FORCE)
-set(__C_FREETYPE_VERSION "2.13.0" CACHE INTERNAL "" FORCE)
-set(__C_HARFBUZZ_VERSION "7.0.1" CACHE INTERNAL "" FORCE)
-set(__C_NLOHMANN_JSON_VERSION "3.11.2" CACHE INTERNAL "" FORCE)
-set(__C_MIMALLOC_VERSION "2.0.9" CACHE INTERNAL "" FORCE)
-set(__C_OPENCV_VERSION "4.7.0" CACHE INTERNAL "" FORCE)
-set(__C_PNG_VERSION "1.6.39" CACHE INTERNAL "" FORCE)
-set(__C_SPDLOG_VERSION "1.11.0" CACHE INTERNAL "" FORCE)
-set(__C_XLNT_VERSION "1.5.0" CACHE INTERNAL "" FORCE)
-set(__C_XLSXWRITER_VERSION "1.1.5" CACHE INTERNAL "" FORCE)
-set(__C_ZLIB_VERSION "1.2.13" CACHE INTERNAL "" FORCE)
+prefixed_option(BUILD_ALL OFF "Enable all external dependencies.")
+get_prefixed_option(BUILD_ALL OUTPUT_PREFIXES "__G")
 
-foreach (__L_DEPENDENCY_NAME
-	"argparse"
-	"ctre"
-	"fmt"
-	"mimalloc"
-	"nlohmann_json"
-	"spdlog"
-
-	"zlib"
-	"png"
-	"freetype"
-	"harfbuzz"
-
-	"libxlsxwriter"
-	"xlnt"
-	"opencv"
-	"boost"
-
-	"mvs"
-
-	"paddle"
+set_internal_cache(EXPORTED_COMPONENTS FALSE)
+foreach (_L_COMPONENT
+	"camera"
 )
-	add_subdirectory("cmake/deps/${__L_DEPENDENCY_NAME}" EXCLUDE_FROM_ALL)
+	string(TOUPPER "${_L_COMPONENT}" _L_COMPONENT_UPPER)
+	set(_L_GUARD_NAME "BUILD_${_L_COMPONENT_UPPER}")
+
+	prefixed_option("${_L_GUARD_NAME}" "${__G_BUILD_ALL}" "Build `${_L_COMPONENT}`.")
+
+	get_prefixed_option("${_L_GUARD_NAME}" OUTPUT_VARIABLE _L_COMPONENT_BUILT)
+	if (_L_COMPONENT_BUILT)
+		set_internal_cache(EXPORTED_COMPONENTS TRUE "${_L_COMPONENT}")
+	endif ()
 endforeach ()
 
-string(TOLOWER "${__G_OPTION_PREFIX}" __G_NAMESPACE)
+get_internal_cache(EXPORTED_COMPONENTS __L_COMPONENTS)
+set_internal_cache(EXPORTED_COMPONENTS FALSE)
+prepare("comp" "" ${__L_COMPONENTS})
 
-foreach (__L_COMPONENT_NAME
-	"camera"
-	"winutils"
+prefixed_option(ENABLE_ALL OFF "Enable all external dependencies.")
+get_prefixed_option(ENABLE_ALL OUTPUT_PREFIXES "__G")
+
+set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE)
+get_internal_cache(EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
+foreach (__L_DEPENDENCY ${__L_DEPENDENCIES})
+	string(TOUPPER "${__L_DEPENDENCY}" __L_DEPENDENCY_UPPER)
+	set(__L_GUARD_NAME "EXPORT_${__L_DEPENDENCY_UPPER}")
+
+	prefixed_option("${__L_GUARD_NAME}" "${__G_ENABLE_ALL}" "Fetch and export targets created by `${__L_DEPENDENCY}`.")
+
+	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_DEPENDENCY_EXPORTED)
+	if (__L_DEPENDENCY_EXPORTED)
+		set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES TRUE "${__L_DEPENDENCY}")
+	endif ()
+endforeach ()
+
+get_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
+set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE)
+prepare("ext" "" ${__L_DEPENDENCIES})
+
+get_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
+list(REMOVE_DUPLICATES __L_DEPENDENCIES)
+set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE ${__L_DEPENDENCIES})
+
+set_internal_cache(TARGETS_ENFORCE_SYSTEM FALSE)
+foreach (__L_DEPENDENCY ${__L_DEPENDENCIES})
+	add_subdirectory("cmake/ext/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL)
+endforeach ()
+
+foreach (__L_DEPENDENCY "basler" "mvs")
+	string(TOUPPER "${__L_DEPENDENCY}" __L_DEPENDENCY_UPPER)
+	set(__L_GUARD_NAME "FIND_${__L_DEPENDENCY_UPPER}")
+
+	prefixed_option("${__L_GUARD_NAME}" "${__G_ENABLE_ALL}" "Find and create targets for `${__L_DEPENDENCY}`.")
+
+	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_DEPENDENCY_ENABLED)
+	if (__L_DEPENDENCY_ENABLED)
+		add_subdirectory("cmake/sys/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL)
+	endif ()
+endforeach ()
+
+get_internal_cache(TARGETS_ENFORCE_SYSTEM __L_TARGETS)
+set_property(
+	TARGET
+		${__L_TARGETS}
+	PROPERTY SYSTEM TRUE
 )
-	add_subdirectory("comp/${__L_COMPONENT_NAME}" EXCLUDE_FROM_ALL)
+
+get_internal_cache(EXPORTED_COMPONENTS __L_COMPONENTS)
+foreach (__L_COMPONENT ${__L_COMPONENTS})
+	add_subdirectory("comp/${__L_COMPONENT}" EXCLUDE_FROM_ALL)
 endforeach ()

@@ -1,21 +1,18 @@
-set(FMT_MODULE ON)
 set(FMT_OS ON)
+set(FMT_MODULE OFF)
 set(FMT_SYSTEM_HEADERS OFF)
 
+get_ext_version(fmt __L_VERSION)
+
 FetchContent_Declare(fmt
-	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}fmtlib/fmt.git"
-	GIT_TAG "$CACHE{__C_FMT_VERSION}"
+	GIT_REPOSITORY "${__G_GITHUB_PREFIX}fmtlib/fmt.git"
+	GIT_TAG "${__L_VERSION}"
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
 	OVERRIDE_FIND_PACKAGE
 )
 
-find_package(fmt "$CACHE{__C_FMT_VERSION}" REQUIRED GLOBAL)
+FetchContent_MakeAvailable(fmt)
 
-set_property(
-	TARGET
-		fmt
-		fmt-header-only
-	PROPERTY SYSTEM TRUE
-)
+set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "fmt" "fmt-header-only")

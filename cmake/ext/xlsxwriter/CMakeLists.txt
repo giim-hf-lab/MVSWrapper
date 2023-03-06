@@ -1,20 +1,18 @@
 set(USE_STANDARD_TMPFILE ON)
 
+get_ext_version(xlsxwriter __L_VERSION)
+
 FetchContent_Declare(xlsxwriter
-	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}jmcnamara/libxlsxwriter.git"
-	GIT_TAG "RELEASE_$CACHE{__C_XLSXWRITER_VERSION}"
+	GIT_REPOSITORY "${__G_GITHUB_PREFIX}jmcnamara/libxlsxwriter.git"
+	GIT_TAG "RELEASE_${__L_VERSION}"
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
 	OVERRIDE_FIND_PACKAGE
 )
 
-find_package(xlsxwriter "$CACHE{__C_XLSXWRITER_VERSION}" REQUIRED GLOBAL)
+FetchContent_MakeAvailable(xlsxwriter)
 
-set_property(
-	TARGET
-		xlsxwriter
-	PROPERTY SYSTEM TRUE
-)
+set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "xlsxwriter")
 
 add_library(xlsxwriter::xlsxwriter ALIAS xlsxwriter)

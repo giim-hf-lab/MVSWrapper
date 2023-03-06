@@ -12,12 +12,6 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        // policies
-        "CMAKE_POLICY_DEFAULT_CMP0054": "NEW",
-        "CMAKE_POLICY_DEFAULT_CMP0077": "NEW",
-        "CMAKE_POLICY_DEFAULT_CMP0097": "NEW",
-        "CMAKE_POLICY_DEFAULT_CMP0126": "NEW",
-        "CMAKE_POLICY_DEFAULT_CMP0135": "NEW",
         // general options
         "BUILD_DOCS": false,
         "BUILD_EXAMPLES": false,
@@ -25,21 +19,13 @@
         "BUILD_SHARED_LIBS": false,
         "BUILD_TESTING": false,
         "BUILD_TESTS": false,
-        "CMAKE_C_STANDARD": "17",
-        "CMAKE_C_STANDARD_REQUIRED": true,
-        "CMAKE_C_EXTENSIONS": false,
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": true,
-        "CMAKE_CXX_EXTENSIONS": false,
         // CMake output directories
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/lib",
         "CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/pdb",
-        "CMAKE_FIND_PACKAGE_TARGETS_GLOBAL": true,
         "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/lib",
         "CMAKE_PDB_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/pdb",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin",
-        "CMAKE_TLS_VERIFY": true,
         // package hints
         "Python_ROOT_DIR": "${sourceDir}/env",
         "Python_FIND_STRATEGY": "LOCATION",

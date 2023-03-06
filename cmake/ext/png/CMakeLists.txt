@@ -2,35 +2,33 @@ prefixed_option(PNG_SHARED "BUILD_SHARED_LIBS" "Build shared mimalloc."
 	REFERENCE
 )
 
+get_ext_version(png __L_VERSION)
+
 set(PNG_BUILD_ZLIB OFF)
 get_prefixed_option(PNG_SHARED)
 set(PNG_STATIC ON)
-set(PNG_TESTS OFF)
 set(PNG_HARDWARE_OPTIMIZATIONS ON)
 
 FetchContent_Declare(png
-	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}glennrp/libpng.git"
-	GIT_TAG "v$CACHE{__C_PNG_VERSION}"
+	GIT_REPOSITORY "${__G_GITHUB_PREFIX}glennrp/libpng.git"
+	GIT_TAG "v${__L_VERSION}"
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
 	OVERRIDE_FIND_PACKAGE
 )
 
-find_package(png "$CACHE{__C_PNG_VERSION}" REQUIRED GLOBAL)
+FetchContent_MakeAvailable(png)
 
 FetchContent_GetProperties(png SOURCE_DIR __L_PNG_DIR BINARY_DIR __L_PNG_BINARY_DIR)
-file(CREATE_LINK "${__L_PNG_BINARY_DIR}/pnglibconf.h" "${__L_PNG_DIR}/pnglibconf.h" SYMBOLIC)
+file(COPY_FILE "${__L_PNG_BINARY_DIR}/pnglibconf.h" "${__L_PNG_DIR}/pnglibconf.h" ONLY_IF_DIFFERENT)
 
 set(__L_TARGETS "png_static")
 if(PNG_SHARED)
 	list(APPEND __L_TARGETS "png")
 endif()
-set_property(
-	TARGET
-		${__L_TARGETS}
-	PROPERTY SYSTEM TRUE
-)
+
+set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE ${__L_TARGETS})
 
 get_archive_path("png_static" __L_PNG_LIBRARY)
 
@@ -38,8 +36,8 @@ set(PNG_FOUND TRUE PARENT_SCOPE)
 set(PNG_DEFINITIONS "" PARENT_SCOPE)
 set(PNG_INCLUDE_DIRS "${__L_PNG_DIR}" PARENT_SCOPE)
 set(PNG_LIBRARIES "${__L_PNG_LIBRARY}" PARENT_SCOPE)
-set(PNG_VERSION "$CACHE{__C_PNG_VERSION}" PARENT_SCOPE)
-set(PNG_VERSION_STRING "$CACHE{__C_PNG_VERSION}" PARENT_SCOPE)
+set(PNG_VERSION "${__L_VERSION}" PARENT_SCOPE)
+set(PNG_VERSION_STRING "${__L_VERSION}" PARENT_SCOPE)
 
 # only for OpenCV
 set(PNG_INCLUDE_DIR "${__L_PNG_DIR}" PARENT_SCOPE)

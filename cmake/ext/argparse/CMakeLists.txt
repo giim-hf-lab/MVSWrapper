@@ -1,19 +1,14 @@
-set(ARGPARSE_BUILD_TESTS OFF)
-set(ARGPARSE_LONG_VERSION_ARG_ONLY OFF)
+get_ext_version(argparse __L_VERSION)
 
 FetchContent_Declare(argparse
-	GIT_REPOSITORY "$CACHE{__C_GITHUB_PREFIX}p-ranav/argparse.git"
-	GIT_TAG "v$CACHE{__C_ARGPARSE_VERSION}"
+	GIT_REPOSITORY "${__G_GITHUB_PREFIX}p-ranav/argparse.git"
+	GIT_TAG "v${__L_VERSION}"
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
 	OVERRIDE_FIND_PACKAGE
 )
 
-find_package(argparse "$CACHE{__C_ARGPARSE_VERSION}" REQUIRED GLOBAL)
+FetchContent_MakeAvailable(argparse)
 
-set_property(
-	TARGET
-		argparse
-	PROPERTY SYSTEM TRUE
-)
+set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "argparse")

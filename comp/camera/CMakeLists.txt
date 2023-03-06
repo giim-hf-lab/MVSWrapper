@@ -8,6 +8,14 @@ target_include_directories("${__L_COMPONENT_NAME}"
 )
 target_link_libraries("${__L_COMPONENT_NAME}"
 	PUBLIC
+		mvs::mvs
 		opencv::core
+		opencv::imgcodecs
 		pylon::pylon
+)
+
+create_example(camera "${__G_NAMESPACE}" __L_COMPONENT_EXAMPLE)
+target_link_libraries("${__L_COMPONENT_EXAMPLE}"
+	PRIVATE
+		${__L_COMPONENT_NAME}
 )

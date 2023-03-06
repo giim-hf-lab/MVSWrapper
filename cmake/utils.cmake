@@ -1,6 +1,59 @@
-include_guard(DIRECTORY)
+include_guard(GLOBAL)
 
-function (check_conditions NAME)
+macro (project_message LEVEL)
+	message("${LEVEL}" "[${__G_PROJECT_NAME}] -- " ${ARGN})
+endmacro ()
+
+macro (enforce NAME)
+	set("${NAME}" ${ARGN})
+	if (DEFINED CACHE{${NAME}})
+		set_property(
+			CACHE "${NAME}"
+			PROPERTY VALUE
+				${ARGN}
+		)
+		set_property(
+			CACHE "${NAME}"
+			PROPERTY TYPE
+				INTERNAL
+		)
+	else ()
+		set("${NAME}" ${ARGN} CACHE INTERNAL "" FORCE)
+	endif ()
+endmacro ()
+
+macro (set_internal_cache NAME APPEND)
+	set(__L_NAME "__C_${__G_CACHE_PREFIX}_INTERNAL_${NAME}")
+	if (DEFINED CACHE{${__L_NAME}})
+		if (${APPEND})
+			set(__L_APPEND "APPEND")
+		else ()
+			set(__L_APPEND)
+		endif ()
+		set_property(
+			CACHE "${__L_NAME}"
+			${__L_APPEND}
+			PROPERTY VALUE
+				${ARGN}
+		)
+		set_property(
+			CACHE "${__L_NAME}"
+			PROPERTY TYPE
+				INTERNAL
+		)
+	else ()
+		set("${__L_NAME}" ${ARGN} CACHE INTERNAL "" FORCE)
+	endif ()
+endmacro ()
+
+macro (get_internal_cache NAME OUTPUT_VARIABLE)
+	get_property("${OUTPUT_VARIABLE}"
+		CACHE "__C_${__G_CACHE_PREFIX}_INTERNAL_${NAME}"
+		PROPERTY VALUE
+	)
+endmacro ()
+
+function (check_conditions NAME OUTPUT_VARIABLE)
 	cmake_parse_arguments(
 		"__P"
 		"ALL"
@@ -19,14 +72,14 @@ function (check_conditions NAME)
 		set(__L_FINAL_VALUE FALSE)
 	endif ()
 
-	set(__L_NAME "__C_${NAME}_CHECKED")
+	set(__L_NAME "${NAME}_CHECKED")
 	foreach (__L_CONDITION ${__P_CONDITIONS})
 		if (${__L_INVERT} ${__P_TYPE} ${__L_CONDITION})
-			set("${__L_NAME}" "${__L_SHORT_VALUE}" CACHE INTERNAL "")
+			set("${OUTPUT_VARIABLE}" ${__L_SHORT_VALUE} PARENT_SCOPE)
 			return ()
 		endif ()
 	endforeach ()
-	set("${__L_NAME}" "${__L_FINAL_VALUE}" CACHE INTERNAL "")
+	set("${OUTPUT_VARIABLE}" ${__L_FINAL_VALUE} PARENT_SCOPE)
 endfunction ()
 
 function (prefixed_option NAME VALUE COMMENT)
@@ -38,13 +91,13 @@ function (prefixed_option NAME VALUE COMMENT)
 		${ARGN}
 	)
 
-	string(JOIN "_" __L_OPTION_NAME "${__G_OPTION_PREFIX}" ${__P_EXTRA_PREFIXES} "${NAME}")
+	string(JOIN "_" __L_OPTION_NAME "${__G_CACHE_PREFIX}" ${__P_EXTRA_PREFIXES} "${NAME}")
 
-	check_conditions("${__L_OPTION_NAME}" ALL CONDITIONS ${__P_DEPENDS})
-	if ($CACHE{__C_${__L_OPTION_NAME}_CHECKED})
+	check_conditions("${__L_OPTION_NAME}" __L_CHECKED ALL CONDITIONS ${__P_DEPENDS})
+	if (__L_CHECKED)
 		if (__P_REFERENCE)
 			if (__P_PREFIX_REFERENCE)
-				set(__L_VALUE_NAME_FRAGMENTS "${__G_OPTION_PREFIX}")
+				set(__L_VALUE_NAME_FRAGMENTS "${__G_CACHE_PREFIX}")
 			else ()
 				set(__L_VALUE_NAME_FRAGMENTS)
 			endif ()
@@ -62,6 +115,13 @@ function (prefixed_option NAME VALUE COMMENT)
 		if ("${__P_TYPE}" STREQUAL "")
 			set(__P_TYPE "BOOL")
 		endif ()
+		if ("${__P_TYPE}" STREQUAL "BOOL")
+			if (__L_VALUE)
+				set(__L_VALUE TRUE)
+			else ()
+				set(__L_VALUE FALSE)
+			endif ()
+		endif ()
 	else ()
 		set(__L_VALUE ${__P_DEFAULT})
 		set(__P_ADVANCED OFF)
@@ -78,6 +138,10 @@ function (prefixed_option NAME VALUE COMMENT)
 	endif ()
 endfunction ()
 
+macro (set_option NAME)
+	set("${__G_CACHE_PREFIX}_${NAME}" ${ARGN})
+endmacro ()
+
 function (get_prefixed_option NAME)
 	cmake_parse_arguments(
 		"__P"
@@ -89,10 +153,28 @@ function (get_prefixed_option NAME)
 	if (NOT __P_OUTPUT_VARIABLE)
 		set(__P_OUTPUT_VARIABLE "${NAME}")
 	endif ()
-	string(JOIN "_" __L_OPTION_NAME "${__G_OPTION_PREFIX}" ${__P_EXTRA_PREFIXES} "${NAME}")
+	string(JOIN "_" __L_OPTION_NAME "${__G_CACHE_PREFIX}" ${__P_EXTRA_PREFIXES} "${NAME}")
 	string(JOIN "_" __P_OUTPUT_VARIABLE ${__P_OUTPUT_PREFIXES} "${__P_OUTPUT_VARIABLE}")
 	set("${__P_OUTPUT_VARIABLE}" ${${__L_OPTION_NAME}} PARENT_SCOPE)
 endfunction ()
+
+macro (set_ext_version NAME VERSION)
+	string(TOUPPER "${NAME}" __L_NAME_UPPER)
+	set_internal_cache("VERSION_${__L_NAME_UPPER}" FALSE "${VERSION}")
+	set_internal_cache(EXTERNAL_DEPENDENCIES TRUE "${NAME}")
+endmacro ()
+
+macro (get_ext_version NAME OUTPUT_VARIABLE)
+	string(TOUPPER "${NAME}" __L_NAME_UPPER)
+	get_internal_cache("VERSION_${__L_NAME_UPPER}" __L_VERSION)
+	set("${OUTPUT_VARIABLE}" "${__L_VERSION}")
+endmacro ()
+
+macro (prepare TYPE PREFIX)
+	foreach (__L_NAME ${ARGN})
+		include("cmake/pre/${TYPE}/${PREFIX}${__L_NAME}.cmake" NO_POLICY_SCOPE)
+	endforeach ()
+endmacro ()
 
 function (get_archive_path TARGET OUTPUT_VARIABLE)
 	get_property(__L_TARGET_PREFIX
@@ -110,14 +192,24 @@ function (get_archive_path TARGET OUTPUT_VARIABLE)
 		TARGET "${TARGET}"
 		PROPERTY "${__G_BUILD_TYPE_UPPER}_POSTFIX"
 	)
-	set("${OUTPUT_VARIABLE}" "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${__L_TARGET_PREFIX}${__L_TARGET_OUTPUT_NAME}${__L_TARGET_POSTFIX}.lib" PARENT_SCOPE)
+	set("${OUTPUT_VARIABLE}"
+		"${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${__L_TARGET_PREFIX}${__L_TARGET_OUTPUT_NAME}${__L_TARGET_POSTFIX}.lib"
+		PARENT_SCOPE
+	)
 endfunction ()
 
-function (create_library_target NAME PREFIX OUTPUT_VARIABLE)
+macro (create_library_target NAME PREFIX OUTPUT_VARIABLE)
 	set(__L_CANONICAL_NAME "${PREFIX}_${NAME}")
 	set(__L_NAMESPACE_NAME "${PREFIX}::${NAME}")
 	add_library("${__L_CANONICAL_NAME}" ${ARGN})
 	add_library("${__L_NAMESPACE_NAME}" ALIAS "${__L_CANONICAL_NAME}")
 
-	set("${OUTPUT_VARIABLE}" "${__L_CANONICAL_NAME}" PARENT_SCOPE)
-endfunction ()
+	set("${OUTPUT_VARIABLE}" "${__L_CANONICAL_NAME}")
+endmacro ()
+
+macro (create_example NAME PREFIX OUTPUT_VARIABLE)
+	set(__L_CANONICAL_NAME "${PREFIX}_${NAME}_example")
+	add_executable("${__L_CANONICAL_NAME}" "example.cpp" ${ARGN})
+
+	set("${OUTPUT_VARIABLE}" "${__L_CANONICAL_NAME}")
+endmacro ()
