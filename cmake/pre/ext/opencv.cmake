@@ -1,5 +1,7 @@
 include_guard(GLOBAL)
 
+prepare("ext" "" "zlib" "png")
+
 prefixed_option(OPENCV_CONTRIB_MODULES "" "OpenCV Contrib modules to be included as part of OpenCV."
 	TYPE STRING
 )

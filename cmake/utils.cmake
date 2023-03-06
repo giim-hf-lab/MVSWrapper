@@ -176,27 +176,48 @@ macro (prepare TYPE PREFIX)
 	endforeach ()
 endmacro ()
 
-function (get_archive_path TARGET OUTPUT_VARIABLE)
-	get_property(__L_TARGET_PREFIX
-		TARGET "${TARGET}"
-		PROPERTY PREFIX
+macro (try_get_property TARGET OUTPUT_VARIABLE VALUE)
+	set("${OUTPUT_VARIABLE}" "${VALUE}")
+	foreach (__L_PROPERTY ${ARGN})
+		get_property(__L_VALUE
+			TARGET "${TARGET}"
+			PROPERTY "${__L_PROPERTY}"
+		)
+		if (NOT "${__L_VALUE}" STREQUAL "")
+			set("${OUTPUT_VARIABLE}" "${__L_VALUE}")
+			break ()
+		endif ()
+	endforeach ()
+endmacro ()
+
+macro (get_archive_path TARGET BINARY_DIR OUTPUT_VARIABLE)
+	try_get_property("${TARGET}" __L_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+		"ARCHIVE_OUTPUT_DIRECTORY_${__G_BUILD_TYPE_UPPER}"
+		"ARCHIVE_OUTPUT_DIRECTORY"
 	)
-	get_property(__L_TARGET_OUTPUT_NAME
-		TARGET "${TARGET}"
-		PROPERTY OUTPUT_NAME
-	)
-	if (NOT __L_TARGET_OUTPUT_NAME)
-		set(__L_TARGET_OUTPUT_NAME "${TARGET}")
+	if ("${__L_OUTPUT_DIRECTORY}" STREQUAL "")
+		set(__L_OUTPUT_DIRECTORY "${BINARY_DIR}")
 	endif ()
-	get_property(__L_TARGET_POSTFIX
-		TARGET "${TARGET}"
-		PROPERTY "${__G_BUILD_TYPE_UPPER}_POSTFIX"
+
+	try_get_property("${TARGET}" __L_PREFIX "${CMAKE_STATIC_LIBRARY_PREFIX}"
+		"PREFIX"
 	)
-	set("${OUTPUT_VARIABLE}"
-		"${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${__L_TARGET_PREFIX}${__L_TARGET_OUTPUT_NAME}${__L_TARGET_POSTFIX}.lib"
-		PARENT_SCOPE
+
+	try_get_property("${TARGET}" __L_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"SUFFIX"
 	)
-endfunction ()
+
+	try_get_property("${TARGET}" __L_OUTPUT_NAME "${TARGET}"
+		"ARCHIVE_OUTPUT_NAME_${__G_BUILD_TYPE_UPPER}"
+		"ARCHIVE_OUTPUT_NAME"
+		"OUTPUT_NAME_${__G_BUILD_TYPE_UPPER}"
+		"OUTPUT_NAME"
+	)
+
+	try_get_property("${TARGET}" __L_POSTFIX "" "${__G_BUILD_TYPE_UPPER}_POSTFIX")
+
+	set("${OUTPUT_VARIABLE}" "${__L_OUTPUT_DIRECTORY}/${__L_PREFIX}${__L_OUTPUT_NAME}${__L_POSTFIX}${__L_SUFFIX}")
+endmacro ()
 
 macro (create_library_target NAME PREFIX OUTPUT_VARIABLE)
 	set(__L_CANONICAL_NAME "${PREFIX}_${NAME}")
