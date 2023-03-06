@@ -27,6 +27,21 @@ struct reader
 	}
 };
 
+struct device : public reader
+{
+	virtual void close() = 0;
+
+	virtual void open() = 0;
+
+	virtual void start(bool latest_only) = 0;
+
+	virtual void stop() = 0;
+
+	virtual void subscribe(bool exclusive) = 0;
+
+	virtual void unsubscribe() = 0;
+};
+
 }
 
 #endif

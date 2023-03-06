@@ -1,8 +1,10 @@
 #include <cstddef>
 
+#include <memory>
 #include <stdexcept>
 #include <string_view>
 #include <system_error>
+#include <vector>
 
 #include <opencv2/core.hpp>
 #include <pylon/BaslerUniversalInstantCamera.h>
@@ -79,23 +81,45 @@ void basler::image_listener::OnImageGrabbed(
 	_images.push_back(std::move(image));
 }
 
-basler::basler(const std::string_view& serial, transport_layer type, bool colour) :
-	reader(),
-	_instance(),
+basler::basler(const Pylon::CDeviceInfo& device_info, bool colour) :
+	device(),
+	_instance(Pylon::CTlFactory::GetInstance().CreateDevice(device_info), Pylon::ECleanup::Cleanup_Delete),
 	_listener(colour)
+{}
+
+[[nodiscard]]
+std::vector<std::unique_ptr<base::device>> basler::find(
+	const std::vector<std::string_view>& serials,
+	transport_layer type,
+	bool colour
+)
 {
-	Pylon::CDeviceInfo device_info;
-	device_info.SetSerialNumber({ serial.data(), serial.size() });
-	switch (type)
+	Pylon::DeviceInfoList filter(serials.size());
+	for (size_t i = 0; i < serials.size(); ++i)
 	{
-		case transport_layer::USB:
-			device_info.SetTLType(Pylon::TLType::TLTypeUSB);
-			break;
-		case transport_layer::GIG_E:
-			device_info.SetTLType(Pylon::TLType::TLTypeGigE);
-			break;
+		const auto& serial = serials[i];
+		auto& device_info = filter[i];
+		device_info.SetSerialNumber({ serial.data(), serial.size() });
+		switch (type)
+		{
+			case transport_layer::USB:
+				device_info.SetTLType(Pylon::TLType::TLTypeUSB);
+				break;
+			case transport_layer::GIG_E:
+				device_info.SetTLType(Pylon::TLType::TLTypeGigE);
+				break;
+		}
 	}
-	_instance.Attach(Pylon::CTlFactory::GetInstance().CreateDevice(device_info), Pylon::ECleanup::Cleanup_Delete);
+
+	Pylon::DeviceInfoList devices;
+	devices.reserve(serials.size());
+	Pylon::CTlFactory::GetInstance().EnumerateDevices(devices, filter, true);
+
+	std::vector<std::unique_ptr<base::device>> ret;
+	ret.reserve(devices.size());
+	for (auto& device_info : devices)
+		ret.emplace_back(new basler(device_info, colour));
+	return ret;
 }
 
 void basler::close()
@@ -133,11 +157,12 @@ void basler::subscribe(bool exclusive)
 	);
 }
 
-bool basler::unsubscribe()
+void basler::unsubscribe()
 {
-	return _instance.DeregisterImageEventHandler(&_listener);
+	_instance.DeregisterImageEventHandler(&_listener);
 }
 
+[[nodiscard]]
 bool basler::next_image(std::error_code& ec, cv::Mat& image)
 {
 	return _listener.next(ec, image);

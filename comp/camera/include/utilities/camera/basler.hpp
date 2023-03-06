@@ -2,6 +2,7 @@
 #define __UTILITIES_CAMERA_BASLER_HPP__
 
 #include <list>
+#include <memory>
 #include <mutex>
 #include <string_view>
 #include <system_error>
@@ -16,7 +17,7 @@
 namespace utilities::camera
 {
 
-struct basler final : public base::reader
+struct basler final : public base::device
 {
 	enum class transport_layer
 	{
@@ -52,20 +53,27 @@ private:
 
 	Pylon::CBaslerUniversalInstantCamera _instance;
 	image_listener _listener;
+
+	basler(const Pylon::CDeviceInfo& device_info, bool colour);
 public:
-	basler(const std::string_view& serial, transport_layer type, bool colour);
+	[[nodiscard]]
+	static std::vector<std::unique_ptr<base::device>> find(
+		const std::vector<std::string_view>& serials,
+		transport_layer type,
+		bool colour
+	);
 
-	void close();
+	virtual void close() override;
 
-	void open();
+	virtual void open() override;
 
-	void start(bool latest_only = false);
+	virtual void start(bool latest_only) override;
 
-	void stop();
+	virtual void stop() override;
 
-	void subscribe(bool exclusive = true);
+	virtual void subscribe(bool exclusive) override;
 
-	bool unsubscribe();
+	virtual void unsubscribe() override;
 
 	[[nodiscard]]
 	virtual bool next_image(std::error_code& ec, cv::Mat& image) override;
