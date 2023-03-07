@@ -9,9 +9,15 @@
 namespace utilities::camera::base
 {
 
-struct reader
+struct device
 {
-	inline virtual ~reader() noexcept = default;
+	inline device() noexcept = default;
+
+	device(const device&) = delete;
+
+	inline virtual ~device() noexcept = default;
+
+	virtual void close() = 0;
 
 	[[nodiscard]]
 	virtual bool next_image(std::error_code& ec, cv::Mat& image) = 0;
@@ -25,11 +31,6 @@ struct reader
 			throw std::system_error(ec);
 		return ret;
 	}
-};
-
-struct device : public reader
-{
-	virtual void close() = 0;
 
 	virtual void open() = 0;
 
@@ -37,7 +38,7 @@ struct device : public reader
 
 	virtual void stop() = 0;
 
-	virtual void subscribe(bool exclusive) = 0;
+	virtual void subscribe() = 0;
 
 	virtual void unsubscribe() = 0;
 };

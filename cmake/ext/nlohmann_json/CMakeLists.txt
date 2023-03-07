@@ -9,7 +9,6 @@ FetchContent_Declare(nlohmann_json
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-	OVERRIDE_FIND_PACKAGE
 )
 
 FetchContent_MakeAvailable(nlohmann_json)
