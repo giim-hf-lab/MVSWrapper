@@ -18,6 +18,8 @@
 #include "utilities/camera/base.hpp"
 #include "utilities/camera/basler.hpp"
 
+#include "./utils.hpp"
+
 namespace utilities::camera
 {
 
@@ -35,8 +37,9 @@ basler::image_listener::image_listener(bool colour) :
 	CBaslerUniversalImageEventHandler {},
 	_converter {},
 	_colour(colour),
-	_images {},
-	_lock {}
+	_rotation(base::rotation_direction::ORIGINAL),
+	_lock {},
+	_images {}
 {
 	_converter.Initialize(_colour ? Pylon::PixelType_BGR8packed : Pylon::PixelType_Mono8);
 }
@@ -46,14 +49,26 @@ basler::image_listener::~image_listener() noexcept
 	_converter.Uninitialize();
 }
 
+[[nodiscard]]
 bool basler::image_listener::next(std::error_code& ec, cv::Mat& image)
 {
-	auto guard = std::lock_guard(_lock);
+	auto guard = std::lock_guard { _lock };
 	if (_images.empty())
 		return false;
 	image = std::move(_images.front());
 	_images.pop_front();
 	return true;
+}
+
+[[nodiscard]]
+base::rotation_direction basler::image_listener::rotation() const
+{
+	return _rotation;
+}
+
+void basler::image_listener::rotation(base::rotation_direction direction)
+{
+	_rotation = direction;
 }
 
 void basler::image_listener::OnImageGrabbed(
@@ -82,8 +97,8 @@ void basler::image_listener::OnImageGrabbed(
 		_converter.Convert(image.data, image.total() * image.channels(), source_image);
 	}
 
-	auto guard = std::lock_guard(_lock);
-	_images.push_back(std::move(image));
+	auto guard = std::lock_guard { _lock };
+	_utils::rotate(image, _images.emplace_back(), _rotation);
 }
 
 const basler::initialiser basler::_global_guard;
@@ -146,6 +161,18 @@ void basler::open()
 	_instance.Open();
 }
 
+[[nodiscard]]
+base::rotation_direction basler::rotation() const
+{
+	return _listener.rotation();
+}
+
+void basler::rotation(base::rotation_direction direction)
+{
+	_listener.rotation(direction);
+}
+
+[[nodiscard]]
 std::string basler::serial() const
 {
 	const auto& serial = _instance.GetDeviceInfo().GetSerialNumber();

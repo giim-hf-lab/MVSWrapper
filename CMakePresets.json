@@ -45,20 +45,20 @@
         "value": "x64",
         "strategy": "external"
       },
-      "cacheVariables": {
-        // compiler specific
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe",
-        "CMAKE_C_FLAGS_INIT": "/options:strict /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:preprocessor /permissive- /Zc:__STDC__ /D_CRT_DECLARE_NONSTDC_NAMES",
-        "CMAKE_CXX_FLAGS_INIT": "/options:strict /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:lambda /Zc:preprocessor /permissive- /EHsc /Zc:__cplusplus /Zc:enumTypes /Zc:externConstexpr /Zc:inline /Zc:throwingNew /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES",
-        "CMAKE_EXE_LINKER_FLAGS_INIT": "/STACK:0x800000",
-        "CMAKE_EXE_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
-        "CMAKE_MFC_FLAG": "1",
-        // direct all binary outputs to the same folder due to Windows DLLs finding strategy
-        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin",
-        // system specific
-        "CMAKE_SYSTEM_VERSION": "10.0"
-      },
+	  "cacheVariables": {
+		// compiler specific
+		"CMAKE_C_COMPILER": "cl.exe",
+		"CMAKE_CXX_COMPILER": "cl.exe",
+		"CMAKE_C_FLAGS_INIT": "/options:strict /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:preprocessor /permissive- /Zc:__STDC__ /D_CRT_DECLARE_NONSTDC_NAMES",
+		"CMAKE_CXX_FLAGS_INIT": "/options:strict /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:lambda /Zc:preprocessor /permissive- /EHsc /Zc:__cplusplus /Zc:enumTypes /Zc:externConstexpr /Zc:inline /Zc:throwingNew /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES",
+		"CMAKE_EXE_LINKER_FLAGS_INIT": "/STACK:0x800000",
+		"CMAKE_EXE_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
+		"CMAKE_MFC_FLAG": "1",
+		// direct all binary outputs to the same folder due to Windows DLLs finding strategy
+		"CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin",
+		// system specific
+		"CMAKE_SYSTEM_VERSION": "10.0"
+	  },
       "toolset": {
         "value": "host=x64",
         "strategy": "external"

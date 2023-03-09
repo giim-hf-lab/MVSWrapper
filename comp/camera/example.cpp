@@ -1,5 +1,8 @@
+#include <cstddef>
+
 #include <chrono>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "utilities/camera/base.hpp"
@@ -9,6 +12,10 @@
 
 using std::chrono_literals::operator""ms;
 using std::chrono_literals::operator""us;
+
+#ifndef _EXAMPLE_WORKING_DIRECTORY
+#define _EXAMPLE_WORKING_DIRECTORY "."
+#endif
 
 int main()
 {
@@ -46,11 +53,21 @@ int main()
 			return 2;
 	}
 
+	auto fake_cameras = utilities::camera::fake::find(
+		_EXAMPLE_WORKING_DIRECTORY,
+		{ "1", "2", "3" },
+		false,
+		60,
+		10
+	);
+
 	std::vector<utilities::camera::base::device *> all_cameras;
 	all_cameras.reserve(basler_cameras.size());
 	for (auto& camera : basler_cameras)
 		all_cameras.push_back(camera.get());
 	for (auto& camera : mvs_cameras)
+		all_cameras.push_back(camera.get());
+	for (auto& camera : fake_cameras)
 		all_cameras.push_back(camera.get());
 
 	for (auto& camera : all_cameras)

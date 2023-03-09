@@ -10,13 +10,33 @@
 namespace utilities::camera::base
 {
 
+enum class brand
+{
+	UNKNOWN,
+	BASLER,
+	MVS
+};
+
+enum class rotation_direction
+{
+	ORIGINAL,
+	CLOCKWISE_90,
+	ANY_180,
+	COUNTER_CLOCKWISE_90
+};
+
 struct device
 {
 	inline device() noexcept = default;
 
 	device(const device&) = delete;
 
+	inline device(device&&) noexcept = default;
+
 	inline virtual ~device() noexcept = default;
+
+	[[nodiscard]]
+	virtual brand brand() const = 0;
 
 	virtual void close() = 0;
 
@@ -35,6 +55,12 @@ struct device
 
 	virtual void open() = 0;
 
+	[[nodiscard]]
+	virtual rotation_direction rotation() const = 0;
+
+	virtual void rotation(rotation_direction rotation) = 0;
+
+	[[nodiscard]]
 	virtual std::string serial() const = 0;
 
 	virtual void start(bool latest_only) = 0;

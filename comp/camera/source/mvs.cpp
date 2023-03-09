@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -14,6 +15,8 @@
 #include "utilities/camera/base.hpp"
 #include "utilities/camera/mvs.hpp"
 
+#include "./utils.hpp"
+
 namespace utilities::camera
 {
 
@@ -22,11 +25,13 @@ namespace
 
 struct mvs_error_category final : public std::error_category
 {
+	[[nodiscard]]
 	virtual const char *name() const noexcept override
 	{
 		return "HikVision MV Camera";
 	}
 
+	[[nodiscard]]
 	virtual std::string message(int condition) const override
 	{
 		static constexpr size_t code_width = sizeof(int) * 2;
@@ -115,11 +120,17 @@ void mvs::_callback(unsigned char *data, ::MV_FRAME_OUT_INFO_EX *info, void *use
 		_wrap_mvs(::MV_CC_ConvertPixelType, self->_handle, &param);
 	}
 
-	auto guard = std::lock_guard(self->_lock);
-	self->_images.push_back(std::move(image));
+	auto guard = std::lock_guard { self->_lock };
+	_utils::rotate(image, self->_images.emplace_back(), self->_rotation);
 }
 
-mvs::mvs(const ::MV_CC_DEVICE_INFO *device_info, bool colour) : _handle(nullptr), _colour(colour)
+mvs::mvs(const ::MV_CC_DEVICE_INFO *device_info, bool colour) :
+	device {},
+	_handle(nullptr),
+	_colour(colour),
+	_rotation(base::rotation_direction::ORIGINAL),
+	_lock {},
+	_images {}
 {
 	_wrap_mvs(::MV_CC_CreateHandleWithoutLog, &_handle, device_info);
 }
@@ -214,9 +225,10 @@ void mvs::close()
 	_wrap_mvs(::MV_CC_CloseDevice, _handle);
 }
 
+[[nodiscard]]
 bool mvs::next_image(std::error_code& ec, cv::Mat& image)
 {
-	auto guard = std::lock_guard(_lock);
+	auto guard = std::lock_guard { _lock };
 	if (_images.empty())
 		return false;
 	image = std::move(_images.front());
@@ -229,6 +241,18 @@ void mvs::open()
 	_wrap_mvs(::MV_CC_OpenDevice, _handle, MV_ACCESS_Control, 0);
 }
 
+[[nodiscard]]
+base::rotation_direction mvs::rotation() const
+{
+	return _rotation;
+}
+
+void mvs::rotation(base::rotation_direction rotation)
+{
+	_rotation = rotation;
+}
+
+[[nodiscard]]
 std::string mvs::serial() const
 {
 	::MV_CC_DEVICE_INFO device_info;
@@ -240,7 +264,7 @@ std::string mvs::serial() const
 		case MV_USB_DEVICE:
 			return reinterpret_cast<char *>(device_info.SpecialInfo.stUsb3VInfo.chSerialNumber);
 		default:
-			return {};
+			throw std::logic_error("unexpected device transport layer type");
 	}
 }
 
@@ -287,6 +311,7 @@ template< \
 #endif
 
 PARAMETER_CONSTRAINT(T, std::is_integral_v)
+[[nodiscard]]
 inline bool _mvs_set(void *handle, const char* name, T value)
 {
 	std::error_code ec;
@@ -295,6 +320,7 @@ inline bool _mvs_set(void *handle, const char* name, T value)
 }
 
 PARAMETER_CONSTRAINT(T, std::is_floating_point_v)
+[[nodiscard]]
 inline bool _mvs_set(void *handle, const char* name, T value)
 {
 	std::error_code ec;
@@ -303,6 +329,7 @@ inline bool _mvs_set(void *handle, const char* name, T value)
 }
 
 template<bool string>
+[[nodiscard]]
 inline bool _mvs_set(void *handle, const char *name, const char *value)
 {
 	std::error_code ec;

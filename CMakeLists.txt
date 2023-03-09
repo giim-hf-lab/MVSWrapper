@@ -97,6 +97,7 @@ get_prefixed_option(BUILD_ALL OUTPUT_PREFIXES "__G")
 set_internal_cache(EXPORTED_COMPONENTS FALSE)
 foreach (_L_COMPONENT
 	"camera"
+	"winutils"
 )
 	string(TOUPPER "${_L_COMPONENT}" _L_COMPONENT_UPPER)
 	set(_L_GUARD_NAME "BUILD_${_L_COMPONENT_UPPER}")

@@ -32,8 +32,9 @@ private:
 
 	void *_handle;
 	bool _colour;
-	std::list<cv::Mat> _images;
+	base::rotation_direction _rotation;
 	std::mutex _lock;
+	std::list<cv::Mat> _images;
 
 	mvs(const ::MV_CC_DEVICE_INFO *device_info, bool colour);
 public:
@@ -48,6 +49,12 @@ public:
 
 	// base::device
 
+	[[nodiscard]]
+	inline virtual base::brand brand() const override
+	{
+		return base::brand::MVS;
+	}
+
 	virtual void close() override;
 
 	[[nodiscard]]
@@ -55,6 +62,12 @@ public:
 
 	virtual void open() override;
 
+	[[nodiscard]]
+	virtual base::rotation_direction rotation() const override;
+
+	virtual void rotation(base::rotation_direction direction) override;
+
+	[[nodiscard]]
 	virtual std::string serial() const override;
 
 	virtual void start(bool latest_only) override;

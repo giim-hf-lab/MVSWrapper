@@ -41,14 +41,21 @@ private:
 	{
 		Pylon::CImageFormatConverter _converter;
 		bool _colour;
-		std::list<cv::Mat> _images;
+		base::rotation_direction _rotation;
 		std::mutex _lock;
+		std::list<cv::Mat> _images;
 	public:
 		image_listener(bool colour);
 
 		~image_listener() noexcept;
 
+		[[nodiscard]]
 		inline bool next(std::error_code& ec, cv::Mat& image);
+
+		[[nodiscard]]
+		inline base::rotation_direction rotation() const;
+
+		inline void rotation(base::rotation_direction direction);
 
 		virtual void OnImageGrabbed(
 			Pylon::CBaslerUniversalInstantCamera& camera,
@@ -72,6 +79,12 @@ public:
 
 	// base::device
 
+	[[nodiscard]]
+	inline virtual base::brand brand() const override
+	{
+		return base::brand::BASLER;
+	}
+
 	virtual void close() override;
 
 	[[nodiscard]]
@@ -79,6 +92,12 @@ public:
 
 	virtual void open() override;
 
+	[[nodiscard]]
+	virtual base::rotation_direction rotation() const override;
+
+	virtual void rotation(base::rotation_direction direction) override;
+
+	[[nodiscard]]
 	virtual std::string serial() const override;
 
 	virtual void start(bool latest_only) override;
