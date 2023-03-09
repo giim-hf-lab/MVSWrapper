@@ -1,6 +1,7 @@
 #ifndef __UTILITIES_CAMERA_BASE_HPP__
 #define __UTILITIES_CAMERA_BASE_HPP__
 
+#include <string>
 #include <system_error>
 #include <utility>
 
@@ -33,6 +34,8 @@ struct device
 	}
 
 	virtual void open() = 0;
+
+	virtual std::string serial() const = 0;
 
 	virtual void start(bool latest_only) = 0;
 

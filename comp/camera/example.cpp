@@ -4,6 +4,7 @@
 
 #include "utilities/camera/base.hpp"
 #include "utilities/camera/basler.hpp"
+#include "utilities/camera/fake.hpp"
 #include "utilities/camera/mvs.hpp"
 
 using std::chrono_literals::operator""ms;

@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
@@ -143,6 +144,12 @@ bool basler::next_image(std::error_code& ec, cv::Mat& image)
 void basler::open()
 {
 	_instance.Open();
+}
+
+std::string basler::serial() const
+{
+	const auto& serial = _instance.GetDeviceInfo().GetSerialNumber();
+	return { serial.c_str(), serial.size() };
 }
 
 void basler::start(bool latest_only)

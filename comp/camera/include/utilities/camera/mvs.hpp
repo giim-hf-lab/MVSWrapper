@@ -7,6 +7,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
@@ -53,6 +54,8 @@ public:
 	virtual bool next_image(std::error_code& ec, cv::Mat& image) override;
 
 	virtual void open() override;
+
+	virtual std::string serial() const override;
 
 	virtual void start(bool latest_only) override;
 

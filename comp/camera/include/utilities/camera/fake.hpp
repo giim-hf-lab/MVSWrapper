@@ -11,13 +11,6 @@
 namespace utilities::camera
 {
 
-class fake final : public base::reader
-{
-public:
-	[[nodiscard]]
-	virtual bool next_image(std::error_code& ec, cv::Mat& image) override;
-};
-
 }
 
 #endif

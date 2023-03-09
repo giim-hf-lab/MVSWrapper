@@ -11,6 +11,7 @@
 
 #include <MvCameraControl.h>
 
+#include "utilities/camera/base.hpp"
 #include "utilities/camera/mvs.hpp"
 
 namespace utilities::camera
@@ -226,6 +227,21 @@ bool mvs::next_image(std::error_code& ec, cv::Mat& image)
 void mvs::open()
 {
 	_wrap_mvs(::MV_CC_OpenDevice, _handle, MV_ACCESS_Control, 0);
+}
+
+std::string mvs::serial() const
+{
+	::MV_CC_DEVICE_INFO device_info;
+	_wrap_mvs(::MV_CC_GetDeviceInfo, _handle, &device_info);
+	switch (device_info.nTLayerType)
+	{
+		case MV_GIGE_DEVICE:
+			return reinterpret_cast<char *>(device_info.SpecialInfo.stGigEInfo.chSerialNumber);
+		case MV_USB_DEVICE:
+			return reinterpret_cast<char *>(device_info.SpecialInfo.stUsb3VInfo.chSerialNumber);
+		default:
+			return {};
+	}
 }
 
 void mvs::start(bool latest_only)

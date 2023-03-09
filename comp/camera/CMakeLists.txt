@@ -1,5 +1,6 @@
 create_library_target(camera "${__G_NAMESPACE}" __L_COMPONENT_NAME STATIC
 	"source/basler.cpp"
+	"source/fake.cpp"
 	"source/mvs.cpp"
 )
 target_include_directories("${__L_COMPONENT_NAME}"
