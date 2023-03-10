@@ -24,65 +24,29 @@ using std::chrono_literals::operator""ms;
 namespace utilities::camera
 {
 
-void fake::_simulate(std::stop_token token)
-{
-	while (!token.stop_requested())
-	{
-		auto now = std::chrono::steady_clock::now();
-		const auto selection = _selection_distribution(_selection_generator);
-		const std::chrono::milliseconds required_elapsed { _base_interval + _offset_distribution(_time_generator) };
-		while (std::chrono::steady_clock::now() - now < required_elapsed)
-		{
-			std::this_thread::sleep_for(1ms);
-			if (token.stop_requested())
-				return;
-		}
-
-		const auto& image = _pool[selection];
-		auto guard = std::lock_guard { _lock };
-		_utils::rotate(image, _images.emplace_back(), _rotation);
-	}
-}
-
 namespace
 {
 
-static const std::unordered_set<std::filesystem::path> _accepted_extension {
+static const std::unordered_set<std::string> _accepted_extension {
 	".bmp",
 	".jpg",
 	".png"
 };
 
 [[nodiscard]]
-std::vector<cv::Mat> _load_images(const std::filesystem::path& directory, bool colour)
+static std::vector<cv::Mat> _load_images(const std::filesystem::path& directory, bool colour)
 {
 	const auto read_mode = colour ? cv::IMREAD_COLOR : cv::IMREAD_GRAYSCALE;
 	std::vector<cv::Mat> images;
 	for (const auto& entry : std::filesystem::directory_iterator(directory))
 	{
 		if (entry.is_regular_file())
-			if (const auto& path = entry.path(); _accepted_extension.count(path.extension()))
+			if (const auto& path = entry.path(); _accepted_extension.count(path.extension().string()))
 				images.push_back(cv::imread(path.string(), read_mode));
 	}
 	return images;
 }
 
-}
-
-[[nodiscard]]
-std::vector<std::unique_ptr<fake>> fake::find(
-	const std::filesystem::path& base,
-	std::vector<std::string> serials,
-	bool colour,
-	size_t base_interval,
-	int64_t offset_range
-)
-{
-	std::vector<std::unique_ptr<fake>> ret;
-	ret.reserve(serials.size());
-	for (auto& serial : serials)
-		ret.emplace_back(new fake(base, std::move(serial), colour, base_interval, offset_range));
-	return ret;
 }
 
 fake::fake(
@@ -104,9 +68,47 @@ fake::fake(
 	_selection_distribution { 0, _pool.size() - 1 },
 	_lock {},
 	_images {},
+	_counter(0),
 	_stop {},
 	_simulation {}
 {}
+
+void fake::_simulate(std::stop_token token)
+{
+	while (!token.stop_requested())
+	{
+		auto now = std::chrono::steady_clock::now();
+		const auto selection = _selection_distribution(_selection_generator);
+		const std::chrono::milliseconds required_elapsed { _base_interval + _offset_distribution(_time_generator) };
+		while (std::chrono::steady_clock::now() - now < required_elapsed)
+		{
+			std::this_thread::sleep_for(1ms);
+			if (token.stop_requested())
+				return;
+		}
+
+		const auto& image = _pool[selection];
+		auto guard = std::lock_guard { _lock };
+		_utils::rotate(image, _images.emplace_back(), _rotation);
+	}
+}
+
+[[nodiscard]]
+std::vector<std::unique_ptr<fake>> fake::find(
+	const std::filesystem::path& base,
+	std::vector<std::string> serials,
+	bool colour,
+	size_t base_interval,
+	int64_t offset_range
+)
+{
+	std::vector<std::unique_ptr<fake>> ret;
+	ret.reserve(serials.size());
+	for (auto& serial : serials)
+		if (std::filesystem::exists(base / serial))
+			ret.emplace_back(new fake(base, std::move(serial), colour, base_interval, offset_range));
+	return ret;
+}
 
 fake::~fake() noexcept
 {
@@ -114,14 +116,15 @@ fake::~fake() noexcept
 }
 
 [[nodiscard]]
-bool fake::next_image(std::error_code& ec, cv::Mat& image)
+base::frame fake::next_image(std::error_code& ec)
 {
 	auto guard = std::lock_guard { _lock };
 	if (_images.empty())
-		return false;
-	image = std::move(_images.front());
+		return {};
+
+	base::frame ret { ++_counter, std::move(_images.front()) };
 	_images.pop_front();
-	return true;
+	return ret;
 }
 
 [[nodiscard]]
@@ -143,9 +146,6 @@ std::string fake::serial() const
 
 void fake::start(bool latest_only)
 {
-	auto guard = std::lock_guard { _lock };
-	_images.clear();
-
 	_stop = {};
 	_simulation = std::thread { &fake::_simulate, this, _stop.get_token() };
 }
@@ -155,6 +155,13 @@ void fake::stop()
 	_stop.request_stop();
 	if (_simulation.joinable())
 		_simulation.join();
+}
+
+void fake::subscribe()
+{
+	auto guard = std::lock_guard { _lock };
+	_images.clear();
+	_counter = 0;
 }
 
 }

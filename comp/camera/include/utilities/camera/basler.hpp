@@ -32,9 +32,15 @@ struct basler final : public base::device
 private:
 	struct initialiser final
 	{
-		initialiser();
+		inline initialiser()
+		{
+			Pylon::PylonInitialize();
+		}
 
-		~initialiser() noexcept;
+		inline ~initialiser() noexcept
+		{
+			Pylon::PylonTerminate();
+		}
 	};
 
 	class image_listener final : public Pylon::CBaslerUniversalImageEventHandler
@@ -44,18 +50,19 @@ private:
 		base::rotation_direction _rotation;
 		std::mutex _lock;
 		std::list<cv::Mat> _images;
+		size_t _counter;
 	public:
 		image_listener(bool colour);
 
-		~image_listener() noexcept;
-
 		[[nodiscard]]
-		inline bool next(std::error_code& ec, cv::Mat& image);
+		inline base::frame next(std::error_code& ec);
 
 		[[nodiscard]]
 		inline base::rotation_direction rotation() const;
 
 		inline void rotation(base::rotation_direction direction);
+
+		virtual void OnImageEventHandlerRegistered(Pylon::CBaslerUniversalInstantCamera& camera) override;
 
 		virtual void OnImageGrabbed(
 			Pylon::CBaslerUniversalInstantCamera& camera,
@@ -88,7 +95,7 @@ public:
 	virtual void close() override;
 
 	[[nodiscard]]
-	virtual bool next_image(std::error_code& ec, cv::Mat& image) override;
+	virtual base::frame next_image(std::error_code& ec) override;
 
 	virtual void open() override;
 

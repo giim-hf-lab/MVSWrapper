@@ -1,6 +1,8 @@
 #ifndef __UTILITIES_CAMERA_BASE_HPP__
 #define __UTILITIES_CAMERA_BASE_HPP__
 
+#include <cstddef>
+
 #include <string>
 #include <system_error>
 #include <utility>
@@ -15,6 +17,23 @@ enum class brand
 	UNKNOWN,
 	BASLER,
 	MVS
+};
+
+struct frame final
+{
+	size_t id;
+	cv::Mat content;
+
+	inline frame() noexcept : id(0), content {} {}
+
+	inline frame(size_t id, cv::Mat content) noexcept : id(id), content(std::move(content)) {}
+
+	frame(const frame&) = delete;
+
+	inline frame(frame&&) noexcept = default;
+
+	[[nodiscard]]
+	inline operator bool() const noexcept { return id; }
 };
 
 enum class rotation_direction
@@ -41,13 +60,13 @@ struct device
 	virtual void close() = 0;
 
 	[[nodiscard]]
-	virtual bool next_image(std::error_code& ec, cv::Mat& image) = 0;
+	virtual frame next_image(std::error_code& ec) = 0;
 
 	[[nodiscard]]
-	inline virtual bool next_image(cv::Mat& image) final
+	inline virtual frame next_image() final
 	{
 		std::error_code ec;
-		auto ret = next_image(ec, image);
+		auto ret = next_image(ec);
 		if (ec)
 			throw std::system_error(ec);
 		return ret;

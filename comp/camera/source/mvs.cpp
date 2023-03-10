@@ -130,7 +130,8 @@ mvs::mvs(const ::MV_CC_DEVICE_INFO *device_info, bool colour) :
 	_colour(colour),
 	_rotation(base::rotation_direction::ORIGINAL),
 	_lock {},
-	_images {}
+	_images {},
+	_counter(0)
 {
 	_wrap_mvs(::MV_CC_CreateHandleWithoutLog, &_handle, device_info);
 }
@@ -226,14 +227,15 @@ void mvs::close()
 }
 
 [[nodiscard]]
-bool mvs::next_image(std::error_code& ec, cv::Mat& image)
+base::frame mvs::next_image(std::error_code& ec)
 {
 	auto guard = std::lock_guard { _lock };
 	if (_images.empty())
-		return false;
-	image = std::move(_images.front());
+		return {};
+
+	base::frame ret { ++_counter, std::move(_images.front()) };
 	_images.pop_front();
-	return true;
+	return ret;
 }
 
 void mvs::open()
@@ -288,6 +290,10 @@ void mvs::stop()
 void mvs::subscribe()
 {
 	_wrap_mvs(::MV_CC_RegisterImageCallBackEx, _handle, _callback, this);
+
+	auto guard = std::lock_guard { _lock };
+	_images.clear();
+	_counter = 0;
 }
 
 void mvs::unsubscribe()

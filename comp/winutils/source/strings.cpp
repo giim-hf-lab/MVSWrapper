@@ -49,7 +49,10 @@ void to_string(error_code& ec, const wstring_view& str, string& out, bool native
 		nullptr,
 		nullptr
 	))
+	{
+		ec.clear();
 		out.resize(size);
+	}
 	else
 	{
 		ec.assign(::GetLastError(), system_category());
@@ -91,7 +94,10 @@ void to_wstring(error_code& ec, const string_view& str, wstring& out, bool nativ
 		out.data(),
 		estimated
 	))
+	{
+		ec.clear();
 		out.resize(size);
+	}
 	else
 	{
 		ec.assign(::GetLastError(), system_category());

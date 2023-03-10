@@ -35,6 +35,7 @@ private:
 	base::rotation_direction _rotation;
 	std::mutex _lock;
 	std::list<cv::Mat> _images;
+	size_t _counter;
 
 	mvs(const ::MV_CC_DEVICE_INFO *device_info, bool colour);
 public:
@@ -58,7 +59,7 @@ public:
 	virtual void close() override;
 
 	[[nodiscard]]
-	virtual bool next_image(std::error_code& ec, cv::Mat& image) override;
+	virtual base::frame next_image(std::error_code& ec) override;
 
 	virtual void open() override;
 

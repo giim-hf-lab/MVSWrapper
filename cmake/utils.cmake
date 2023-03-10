@@ -230,7 +230,7 @@ endmacro ()
 
 macro (create_example NAME PREFIX OUTPUT_VARIABLE)
 	set(__L_CANONICAL_NAME "${PREFIX}_${NAME}_example")
-	add_executable("${__L_CANONICAL_NAME}" "example.cpp" ${ARGN})
+	add_executable("${__L_CANONICAL_NAME}"  ${ARGN})
 
 	set("${OUTPUT_VARIABLE}" "${__L_CANONICAL_NAME}")
 endmacro ()

@@ -23,41 +23,28 @@
 namespace utilities::camera
 {
 
-basler::initialiser::initialiser()
-{
-	Pylon::PylonInitialize();
-}
-
-basler::initialiser::~initialiser() noexcept
-{
-	Pylon::PylonTerminate();
-}
-
 basler::image_listener::image_listener(bool colour) :
 	CBaslerUniversalImageEventHandler {},
 	_converter {},
 	_colour(colour),
 	_rotation(base::rotation_direction::ORIGINAL),
 	_lock {},
-	_images {}
+	_images {},
+	_counter(0)
 {
 	_converter.Initialize(_colour ? Pylon::PixelType_BGR8packed : Pylon::PixelType_Mono8);
 }
 
-basler::image_listener::~image_listener() noexcept
-{
-	_converter.Uninitialize();
-}
-
 [[nodiscard]]
-bool basler::image_listener::next(std::error_code& ec, cv::Mat& image)
+base::frame basler::image_listener::next(std::error_code& ec)
 {
 	auto guard = std::lock_guard { _lock };
 	if (_images.empty())
-		return false;
-	image = std::move(_images.front());
+		return {};
+
+	base::frame ret { ++_counter, std::move(_images.front()) };
 	_images.pop_front();
-	return true;
+	return ret;
 }
 
 [[nodiscard]]
@@ -69,6 +56,13 @@ base::rotation_direction basler::image_listener::rotation() const
 void basler::image_listener::rotation(base::rotation_direction direction)
 {
 	_rotation = direction;
+}
+
+void basler::image_listener::OnImageEventHandlerRegistered(Pylon::CBaslerUniversalInstantCamera& camera)
+{
+	auto guard = std::lock_guard { _lock };
+	_images.clear();
+	_counter = 0;
 }
 
 void basler::image_listener::OnImageGrabbed(
@@ -128,7 +122,7 @@ std::vector<std::unique_ptr<basler>> basler::find(
 	}
 
 	Pylon::DeviceInfoList filter;
-	filter.assign((std::max)(serials.size(), size_t(1)), reference);
+	filter.assign(std::max(serials.size(), size_t(1)), reference);
 	for (size_t i = 0; i < serials.size(); ++i)
 	{
 		const auto& serial = serials[i];
@@ -151,9 +145,9 @@ void basler::close()
 }
 
 [[nodiscard]]
-bool basler::next_image(std::error_code& ec, cv::Mat& image)
+base::frame basler::next_image(std::error_code& ec)
 {
-	return _listener.next(ec, image);
+	return _listener.next(ec);
 }
 
 void basler::open()

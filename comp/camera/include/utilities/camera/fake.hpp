@@ -31,8 +31,18 @@ class fake final : public base::device
 	std::uniform_int_distribution<size_t> _selection_distribution;
 	std::mutex _lock;
 	std::list<cv::Mat> _images;
+	size_t _counter;
+
 	std::stop_source _stop;
 	std::thread _simulation;
+
+	fake(
+		const std::filesystem::path& base,
+		std::string serial,
+		bool colour,
+		size_t base_interval,
+		int64_t offset_range
+	);
 
 	void _simulate(std::stop_token token);
 public:
@@ -40,14 +50,6 @@ public:
 	static std::vector<std::unique_ptr<fake>> find(
 		const std::filesystem::path& base,
 		std::vector<std::string> serials,
-		bool colour,
-		size_t base_interval,
-		int64_t offset_range
-	);
-
-	fake(
-		const std::filesystem::path& base,
-		std::string serial,
 		bool colour,
 		size_t base_interval,
 		int64_t offset_range
@@ -66,7 +68,7 @@ public:
 	inline virtual void close() override {}
 
 	[[nodiscard]]
-	virtual bool next_image(std::error_code& ec, cv::Mat& image) override;
+	virtual base::frame next_image(std::error_code& ec) override;
 
 	inline virtual void open() override {}
 
@@ -82,7 +84,7 @@ public:
 
 	virtual void stop() override;
 
-	inline virtual void subscribe() override {}
+	virtual void subscribe() override;
 
 	inline virtual void unsubscribe() override {}
 };

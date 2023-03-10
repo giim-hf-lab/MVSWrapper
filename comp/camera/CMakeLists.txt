@@ -14,9 +14,3 @@ target_link_libraries("${__L_COMPONENT_NAME}"
 		opencv::imgcodecs
 		pylon::pylon
 )
-
-create_example(camera "${__G_NAMESPACE}" __L_COMPONENT_EXAMPLE)
-target_link_libraries("${__L_COMPONENT_EXAMPLE}"
-	PRIVATE
-		${__L_COMPONENT_NAME}
-)
