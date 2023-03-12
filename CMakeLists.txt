@@ -86,7 +86,7 @@ set_ext_version(opencv "4.7.0")
 set_ext_version(paddle "2.4.2")
 set_ext_version(png "1.6.39")
 set_ext_version(spdlog "1.11.0")
-set_ext_version(sqlite3 "3.41.0")
+set_ext_version(sqlite3 "3.41.1")
 set_ext_version(xlnt "1.5.0")
 set_ext_version(xlsxwriter "1.1.5")
 set_ext_version(zlib "1.2.13")
@@ -95,18 +95,18 @@ prefixed_option(BUILD_ALL OFF "Enable all external dependencies.")
 get_prefixed_option(BUILD_ALL OUTPUT_PREFIXES "__G")
 
 set_internal_cache(EXPORTED_COMPONENTS FALSE)
-foreach (_L_COMPONENT
+foreach (__L_COMPONENT
 	"camera"
 	"winutils"
 )
-	string(TOUPPER "${_L_COMPONENT}" _L_COMPONENT_UPPER)
-	set(_L_GUARD_NAME "BUILD_${_L_COMPONENT_UPPER}")
+	string(TOUPPER "${__L_COMPONENT}" __L_COMPONENT_UPPER)
+	set(__L_GUARD_NAME "BUILD_${__L_COMPONENT_UPPER}")
 
-	prefixed_option("${_L_GUARD_NAME}" "${__G_BUILD_ALL}" "Build `${_L_COMPONENT}`.")
+	prefixed_option("${__L_GUARD_NAME}" "${__G_BUILD_ALL}" "Build `${__L_COMPONENT}`.")
 
-	get_prefixed_option("${_L_GUARD_NAME}" OUTPUT_VARIABLE _L_COMPONENT_BUILT)
-	if (_L_COMPONENT_BUILT)
-		set_internal_cache(EXPORTED_COMPONENTS TRUE "${_L_COMPONENT}")
+	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_COMPONENT_BUILT)
+	if (__L_COMPONENT_BUILT)
+		set_internal_cache(EXPORTED_COMPONENTS TRUE "${__L_COMPONENT}")
 	endif ()
 endforeach ()
 
