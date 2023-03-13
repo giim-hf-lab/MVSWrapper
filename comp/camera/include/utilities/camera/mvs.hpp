@@ -71,7 +71,7 @@ public:
 	[[nodiscard]]
 	virtual std::string serial() const override;
 
-	virtual void start(bool latest_only) override;
+	virtual void start() override;
 
 	virtual void stop() override;
 
@@ -111,13 +111,25 @@ public:
 	// manual trigger
 
 	[[nodiscard]]
-	bool set_manual_trigger_line_source(size_t line, const std::chrono::duration<double, std::micro>& delay);
+	bool set_manual_trigger_line_source(
+		size_t line,
+		const std::chrono::duration<double, std::micro>& delay,
+		size_t activation = 1
+	);
 
 	template<typename Rep, typename Period>
 	[[nodiscard]]
-	inline bool set_manual_trigger_line_source(size_t line, const std::chrono::duration<Rep, Period>& delay)
+	inline bool set_manual_trigger_line_source(
+		size_t line,
+		const std::chrono::duration<Rep, Period>& delay,
+		size_t activation = 1
+	)
 	{
-		return set_manual_trigger_line_source(line, std::chrono::duration<double, std::micro> { delay });
+		return set_manual_trigger_line_source(
+			line,
+			std::chrono::duration<double, std::micro> { delay },
+			activation
+		);
 	}
 };
 

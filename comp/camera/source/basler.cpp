@@ -173,14 +173,9 @@ std::string basler::serial() const
 	return { serial.c_str(), serial.size() };
 }
 
-void basler::start(bool latest_only)
+void basler::start()
 {
-	_instance.StartGrabbing(
-		latest_only ?
-			Pylon::GrabStrategy_LatestImageOnly :
-			Pylon::GrabStrategy_OneByOne,
-		Pylon::GrabLoop_ProvidedByInstantCamera
-	);
+	_instance.StartGrabbing(Pylon::GrabStrategy_OneByOne, Pylon::GrabLoop_ProvidedByInstantCamera);
 }
 
 void basler::stop()

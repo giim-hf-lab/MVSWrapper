@@ -144,7 +144,7 @@ std::string fake::serial() const
 	return _serial;
 }
 
-void fake::start(bool latest_only)
+void fake::start()
 {
 	_stop = {};
 	_simulation = std::thread { &fake::_simulate, this, _stop.get_token() };

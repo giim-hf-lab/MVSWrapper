@@ -3,7 +3,6 @@ if (NOT WIN32)
 endif ()
 
 create_library_target(winutils "${__G_NAMESPACE}" __L_COMPONENT_NAME STATIC
-	"source/ini.cpp"
 	"source/strings.cpp"
 )
 target_include_directories("${__L_COMPONENT_NAME}"

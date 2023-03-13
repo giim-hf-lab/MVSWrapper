@@ -80,7 +80,7 @@ public:
 	[[nodiscard]]
 	virtual std::string serial() const override;
 
-	virtual void start(bool latest_only) override;
+	virtual void start() override;
 
 	virtual void stop() override;
 

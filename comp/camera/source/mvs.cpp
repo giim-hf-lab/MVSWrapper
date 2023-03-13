@@ -35,12 +35,12 @@ struct mvs_error_category final : public std::error_category
 	virtual std::string message(int condition) const override
 	{
 		static constexpr size_t code_width = sizeof(int) * 2;
-		char code_string[code_width];
-		auto r = std::to_chars(code_string, code_string + code_width, condition, 16);
-		if (std::error_code ec = std::make_error_code(r.ec); ec)
-			throw std::system_error(ec);
+		char code_string[code_width + 1];
+		auto [ptr, ec] = std::to_chars(code_string, code_string + code_width, unsigned int(condition), 16);
+		if (ec != std::errc())
+			throw std::system_error(std::make_error_code(ec));
 
-		size_t actual_code_width = r.ptr - code_string, padding_width = code_width - actual_code_width;
+		size_t actual_code_width = ptr - code_string, padding_width = code_width - actual_code_width;
 		static constexpr std::string_view prefix = "HikVision MV Camera error (code 0x", suffix = ")";
 		static constexpr size_t total_width = prefix.size() + code_width + suffix.size() + 1;
 
@@ -75,6 +75,8 @@ inline void _wrap_mvs(std::error_code& ec, F&& f, Args&&... args)
 {
 	if (auto ret = f(std::forward<Args>(args)...); ret != MV_OK)
 		ec.assign(ret, _mvs_error_category);
+	else
+		ec.clear();
 }
 
 FUNCTION_TEMPLATE(F, Args, int)
@@ -270,15 +272,8 @@ std::string mvs::serial() const
 	}
 }
 
-void mvs::start(bool latest_only)
+void mvs::start()
 {
-	_wrap_mvs(
-		::MV_CC_SetGrabStrategy,
-		_handle,
-		latest_only ?
-			::MV_GRAB_STRATEGY::MV_GrabStrategy_LatestImagesOnly :
-			::MV_GRAB_STRATEGY::MV_GrabStrategy_OneByOne
-	);
 	_wrap_mvs(::MV_CC_StartGrabbing, _handle);
 }
 
@@ -391,14 +386,25 @@ static constexpr auto _trigger_lines = std::array {
 	"Line2"
 };
 
+static constexpr auto _trigger_activations = std::array {
+	"LevelLow",
+	"RisingEdge",
+	"LevelHigh",
+	"FallingEdge"
+};
+
 }
 
 [[nodiscard]]
-bool mvs::set_manual_trigger_line_source(size_t line, const std::chrono::duration<double, std::micro>& delay)
+bool mvs::set_manual_trigger_line_source(
+	size_t line,
+	const std::chrono::duration<double, std::micro>& delay,
+	size_t activation
+)
 {
 	return line < _trigger_lines.size() &&
-		_mvs_set<false>(_handle, "TriggerSource", "Line0") &&
-		_mvs_set<false>(_handle, "TriggerActivation", "RisingEdge") &&
+		_mvs_set<false>(_handle, "TriggerSource", _trigger_lines[line]) &&
+		_mvs_set<false>(_handle, "TriggerActivation", _trigger_activations[activation]) &&
 		_mvs_set(_handle, "TriggerDelay", delay.count()) &&
 		_mvs_set<false>(_handle, "TriggerMode", "On");
 }

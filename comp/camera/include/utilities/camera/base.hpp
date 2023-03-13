@@ -82,7 +82,7 @@ struct device
 	[[nodiscard]]
 	virtual std::string serial() const = 0;
 
-	virtual void start(bool latest_only) = 0;
+	virtual void start() = 0;
 
 	virtual void stop() = 0;
 

@@ -82,6 +82,7 @@ set_ext_version(harfbuzz "7.1.0")
 set_ext_version(nameof "0.10.2")
 set_ext_version(nlohmann_json "3.11.2")
 set_ext_version(mimalloc "2.0.9")
+set_ext_version(mini "0.9.14")
 set_ext_version(opencv "4.7.0")
 set_ext_version(paddle "2.4.2")
 set_ext_version(png "1.6.39")
@@ -97,6 +98,8 @@ get_prefixed_option(BUILD_ALL OUTPUT_PREFIXES "__G")
 set_internal_cache(EXPORTED_COMPONENTS FALSE)
 foreach (__L_COMPONENT
 	"camera"
+	"ini"
+	"preprocessor"
 	"winutils"
 )
 	string(TOUPPER "${__L_COMPONENT}" __L_COMPONENT_UPPER)
