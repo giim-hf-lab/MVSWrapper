@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __UTILITIES_INI_HPP__
+#define __UTILITIES_INI_HPP__
 
 #ifndef MINI_CASE_SENSITIVE
 #define MINI_CASE_SENSITIVE
@@ -7,12 +8,14 @@
 #include <filesystem>
 #include <limits>
 #include <string>
+#include <system_error>
 #include <type_traits>
 #include <utility>
 
 #include <mini/ini.h>
 
 #include "utilities/preprocessor.hpp"
+#include "utilities/std.hpp"
 
 namespace utilities
 {
@@ -37,19 +40,19 @@ public:
 			throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory));
 	}
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	bool load(std::filesystem::path path);
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	bool loaded() const noexcept;
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	bool modified() const noexcept;
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	bool read(std::string section, std::string key, std::string& value) const;
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	inline bool read(std::string section, std::string key, std::filesystem::path& path) const
 	{
 		std::string value;
@@ -59,8 +62,8 @@ public:
 		return true;
 	}
 
-	UTILITIES_TEMPLATE_SIMPLE_CONSTRAINT(T, std::is_integral_v)
-	[[nodiscard]]
+	UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, std::, integral)
+	UTILITIES_NODISCARD
 	inline bool read(
 		std::string section,
 		std::string key,
@@ -72,12 +75,13 @@ public:
 		if (!read(std::move(section), std::move(key), str))
 			return false;
 
-		auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value, base);
-		return ec == std::errc() && ptr - str.data() == str.size();
+		std::error_code ec;
+		std::from_string(ec, str, value, base);
+		return !ec;
 	}
 
-	UTILITIES_TEMPLATE_SIMPLE_CONSTRAINT(T, std::is_floating_point_v)
-	[[nodiscard]]
+	UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, std::, floating_point)
+	UTILITIES_NODISCARD
 	inline bool read(
 		std::string section,
 		std::string key,
@@ -89,24 +93,25 @@ public:
 		if (!read(std::move(section), std::move(key), str))
 			return false;
 
-		auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value, fmt);
-		return ec == std::errc() && ptr - str.data() == str.size();
+		std::error_code ec;
+		std::from_string(ec, str, value, fmt);
+		return !ec;
 	}
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	bool save();
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	bool write(std::string section, std::string key, std::string value);
 
-	[[nodiscard]]
+	UTILITIES_NODISCARD
 	inline bool write(std::string section, std::string key, const std::filesystem::path& path)
 	{
 		return write(std::move(section), std::move(key), path.string());
 	}
 
-	UTILITIES_TEMPLATE_SIMPLE_CONSTRAINT(T, std::is_integral_v)
-	[[nodiscard]]
+	UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, std::, integral)
+	UTILITIES_NODISCARD
 	inline bool write(
 		std::string section,
 		std::string key,
@@ -114,21 +119,14 @@ public:
 		int base = 10
 	)
 	{
-		using limits = std::numeric_limits<T>;
-		static constexpr size_t width = limits::is_signed + limits::digits;
-
 		std::string str;
-		str.resize(width);
-		auto [ptr, ec] = std::to_chars(str.data(), str.data() + str.size(), value, base);
-		if (ec != std::errc())
-			return false;
-		str.resize(ptr - str.data());
-
-		return write(std::move(section), std::move(key), std::move(str));
+		std::error_code ec;
+		std::to_string(ec, value, str, base);
+		return !ec && write(std::move(section), std::move(key), std::move(str));
 	}
 
-	UTILITIES_TEMPLATE_SIMPLE_CONSTRAINT(T, std::is_floating_point_v)
-	[[nodiscard]]
+	UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, std::, floating_point)
+	UTILITIES_NODISCARD
 	inline bool write(
 		std::string section,
 		std::string key,
@@ -137,18 +135,13 @@ public:
 		std::chars_format fmt = std::chars_format::fixed
 	)
 	{
-		using limits = std::numeric_limits<T>;
-		static constexpr size_t fixed_width = limits::digits10 + limits::max_exponent10 + 5;
-
 		std::string str;
-		str.resize(fixed_width + precision);
-		auto [ptr, ec] = std::to_chars(str.data(), str.data() + str.size(), value, fmt, precision);
-		if (ec != std::errc())
-			return false;
-		str.resize(ptr - str.data());
-
-		return write(std::move(section), std::move(key), std::move(str));
+		std::error_code ec;
+		std::to_string(ec, value, str, precision, fmt);
+		return !ec && write(std::move(section), std::move(key), std::move(str));
 	}
 };
 
 }
+
+#endif

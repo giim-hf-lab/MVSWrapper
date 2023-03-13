@@ -13,7 +13,7 @@ namespace utilities
 
 ini::ini() noexcept : _path {}, _data {}, _modified(false) {}
 
-[[nodiscard]]
+UTILITIES_NODISCARD
 bool ini::load(std::filesystem::path path)
 {
 	if (!std::filesystem::exists(path) || !(mINI::INIReader { path.string() } >> _data))
@@ -24,19 +24,19 @@ bool ini::load(std::filesystem::path path)
 	return true;
 }
 
-[[nodiscard]]
+UTILITIES_NODISCARD
 bool ini::loaded() const noexcept
 {
 	return !_path.empty();
 }
 
-[[nodiscard]]
+UTILITIES_NODISCARD
 bool ini::modified() const noexcept
 {
 	return _modified;
 }
 
-[[nodiscard]]
+UTILITIES_NODISCARD
 bool ini::read(std::string section, std::string key, std::string& value) const
 {
 	auto fetched = _data.get(std::move(section)).get(std::move(key));
@@ -46,7 +46,7 @@ bool ini::read(std::string section, std::string key, std::string& value) const
 	return true;
 }
 
-[[nodiscard]]
+UTILITIES_NODISCARD
 bool ini::save()
 {
 	if (_path.empty() || !(mINI::INIWriter { _path.string() } << _data))
@@ -56,7 +56,7 @@ bool ini::save()
 	return true;
 }
 
-[[nodiscard]]
+UTILITIES_NODISCARD
 bool ini::write(std::string section, std::string key, std::string value)
 {
 	_data[std::move(section)].set(std::move(key), std::move(value));

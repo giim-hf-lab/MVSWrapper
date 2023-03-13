@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.25)
 
 set(__G_PROJECT_NAME "cpp-utilities")
 
@@ -93,23 +93,38 @@ set_ext_version(xlsxwriter "1.1.5")
 set_ext_version(zlib "1.2.13")
 
 prefixed_option(BUILD_ALL OFF "Enable all external dependencies.")
-get_prefixed_option(BUILD_ALL OUTPUT_PREFIXES "__G")
+prefixed_option(BUILD_ALL_TESTING "BUILD_ALL" "Enable all external dependencies."
+	REFERENCE
+	PREFIX_REFERENCE
+)
+
+enforce(BUILD_DOCS FALSE)
+enforce(BUILD_EXAMPLES FALSE)
+enforce(BUILD_PERF_TESTS FALSE)
+enforce(BUILD_SHARED_LIBS FALSE)
+enforce(BUILD_TESTING FALSE)
+enforce(BUILD_TESTS FALSE)
 
 set_internal_cache(EXPORTED_COMPONENTS FALSE)
 foreach (__L_COMPONENT
 	"camera"
-	"ini"
-	"preprocessor"
-	"winutils"
+	"common"
 )
 	string(TOUPPER "${__L_COMPONENT}" __L_COMPONENT_UPPER)
 	set(__L_GUARD_NAME "BUILD_${__L_COMPONENT_UPPER}")
 
-	prefixed_option("${__L_GUARD_NAME}" "${__G_BUILD_ALL}" "Build `${__L_COMPONENT}`.")
+	prefixed_option("${__L_GUARD_NAME}" "BUILD_ALL" "Build `${__L_COMPONENT}`."
+		REFERENCE
+		PREFIX_REFERENCE
+	)
 
 	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_COMPONENT_BUILT)
 	if (__L_COMPONENT_BUILT)
 		set_internal_cache(EXPORTED_COMPONENTS TRUE "${__L_COMPONENT}")
+		prefixed_option("${__L_GUARD_NAME}_TESTING" "BUILD_ALL_TESTING" "Build `${__L_COMPONENT}`."
+			REFERENCE
+			PREFIX_REFERENCE
+		)
 	endif ()
 endforeach ()
 
