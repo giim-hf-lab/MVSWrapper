@@ -2,11 +2,10 @@
 #define __UTILITIES_STD_HPP__
 
 #include <charconv>
+#include <concepts>
 #include <string>
 #include <string_view>
 #include <system_error>
-
-#include "utilities/preprocessor.hpp"
 
 #ifdef _WIN32
 #  include "utilities/std/win.hpp"
@@ -15,25 +14,18 @@
 namespace std
 {
 
-#if __cpp_lib_concepts >= 202002L
-template<typename T>
-concept arithmetic = is_arithmetic_v<T>;
-#endif
-
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , integral)
-inline void from_string(error_code& ec, const string_view& str, T& out, int base = 10)
+inline void from_string(error_code& ec, const string_view& str, integral auto& out, int base = 10)
 {
-	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), out, base);
-	if (ec != errc())
-		ec = make_error_code(ec);
+	auto [ptr, eec] = from_chars(str.data(), str.data() + str.size(), out, base);
+	if (eec != errc())
+		ec = make_error_code(eec);
 	else if (ptr - str.data() != str.size())
 		ec = make_error_code(errc::invalid_argument);
 	else
 		ec.clear();
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , integral)
-inline void from_string(const string_view& str, T& out, int base = 10)
+inline void from_string(const string_view& str, integral auto& out, int base = 10)
 {
 	error_code ec;
 	from_string(ec, str, out, base);
@@ -41,8 +33,8 @@ inline void from_string(const string_view& str, T& out, int base = 10)
 		throw system_error(ec);
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , integral)
-UTILITIES_NODISCARD
+template<integral T>
+[[nodiscard]]
 inline T from_string(const string_view& str, int base = 10)
 {
 	T out;
@@ -50,20 +42,18 @@ inline T from_string(const string_view& str, int base = 10)
 	return out;
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , floating_point)
-inline void from_string(error_code& ec, const string_view& str, T& out, chars_format fmt = chars_format::general)
+inline void from_string(error_code& ec, const string_view& str, floating_point auto& out, chars_format fmt = chars_format::general)
 {
-	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), out, fmt);
-	if (ec != errc())
-		ec = make_error_code(ec);
+	auto [ptr, eec] = from_chars(str.data(), str.data() + str.size(), out, fmt);
+	if (eec != errc())
+		ec = make_error_code(eec);
 	else if (ptr - str.data() != str.size())
 		ec = make_error_code(errc::invalid_argument);
 	else
 		ec.clear();
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , floating_point)
-inline void from_string(const string_view& str, T& out, chars_format fmt = chars_format::general)
+inline void from_string(const string_view& str, floating_point auto& out, chars_format fmt = chars_format::general)
 {
 	error_code ec;
 	from_string(ec, str, out, fmt);
@@ -71,8 +61,8 @@ inline void from_string(const string_view& str, T& out, chars_format fmt = chars
 		throw system_error(ec);
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , floating_point)
-UTILITIES_NODISCARD
+template<floating_point T>
+[[nodiscard]]
 inline T from_string(const string_view& str, chars_format fmt = chars_format::general)
 {
 	T out;
@@ -80,22 +70,24 @@ inline T from_string(const string_view& str, chars_format fmt = chars_format::ge
 	return out;
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , integral)
+template<integral T>
 inline void to_string(error_code& ec, T value, string& out, int base = 10)
 {
 	using limits = numeric_limits<T>;
 	static constexpr size_t width = limits::is_signed + limits::digits;
 
 	out.resize(width);
-	auto [ptr, ec] = to_chars(out.data(), out.data() + out.size(), value, base);
-	if (ec != errc())
-		ec = make_error_code(ec);
+	auto [ptr, eec] = to_chars(out.data(), out.data() + out.size(), value, base);
+	if (eec != errc())
+		ec = make_error_code(eec);
 	else
+	{
 		out.resize(ptr - out.data());
+		ec.clear();
+	}
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , integral)
-inline void to_string(T value, string& out, int base = 10)
+inline void to_string(integral auto value, string& out, int base = 10)
 {
 	error_code ec;
 	to_string(ec, value, out, base);
@@ -103,31 +95,32 @@ inline void to_string(T value, string& out, int base = 10)
 		throw system_error(ec);
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , integral)
-UTILITIES_NODISCARD
-inline string to_string(T value, int base)
+[[nodiscard]]
+inline string to_string(integral auto value, int base)
 {
 	string out;
 	to_string(value, out, base);
 	return out;
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , floating_point)
+template<floating_point T>
 inline void to_string(error_code& ec, T value, string& out, int precision = 6, chars_format fmt = chars_format::fixed)
 {
 	using limits = numeric_limits<T>;
 	static constexpr size_t fixed_width = limits::digits10 + limits::max_exponent10 + 4;
 
 	out.resize(fixed_width + precision);
-	auto [ptr, ec] = to_chars(out.data(), out.data() + out.size(), value, fmt, precision);
-	if (ec != errc())
-		ec = make_error_code(ec);
+	auto [ptr, eec] = to_chars(out.data(), out.data() + out.size(), value, fmt, precision);
+	if (eec != errc())
+		ec = make_error_code(eec);
 	else
+	{
 		out.resize(ptr - out.data());
+		ec.clear();
+	}
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , floating_point)
-inline void to_string(T value, string& out, int precision = 6, chars_format fmt = chars_format::fixed)
+inline void to_string(floating_point auto value, string& out, int precision = 6, chars_format fmt = chars_format::fixed)
 {
 	error_code ec;
 	to_string(ec, value, out, precision, fmt);
@@ -135,9 +128,8 @@ inline void to_string(T value, string& out, int precision = 6, chars_format fmt 
 		throw system_error(ec);
 }
 
-UTILITIES_SIMPLE_CONCEPT_TEMPLATE(T, , floating_point)
-UTILITIES_NODISCARD
-inline string to_string(T value, int precision, chars_format fmt = chars_format::fixed)
+[[nodiscard]]
+inline string to_string(floating_point auto value, int precision, chars_format fmt = chars_format::fixed)
 {
 	string out;
 	to_string(value, out, precision, fmt);

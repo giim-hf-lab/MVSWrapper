@@ -5,8 +5,6 @@
 #include <string_view>
 #include <system_error>
 
-#include "utilities/preprocessor.hpp"
-
 namespace std
 {
 
@@ -26,7 +24,7 @@ inline void from_string(const string_view& str, wstring& out, bool native = true
 		throw system_error(ec);
 }
 
-UTILITIES_NODISCARD
+[[nodiscard]]
 inline wstring from_string(const string_view& str, bool native = true, bool low_memory = false)
 {
 	wstring out;
@@ -50,7 +48,7 @@ inline void to_string(const wstring_view& str, string& out, bool native = true, 
 		throw system_error(ec);
 }
 
-UTILITIES_NODISCARD
+[[nodiscard]]
 inline string to_string(const wstring_view& str, bool native = true, bool low_memory = false)
 {
 	string out;

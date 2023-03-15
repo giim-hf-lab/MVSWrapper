@@ -1,9 +1,10 @@
 set(__L_SOURCES
-	"source/ini.cpp"
+	"source/common/ini.cpp"
+	"source/common/stopwatch.cpp"
 )
 if (WIN32)
 	list(APPEND __L_SOURCES
-		"source/std/win.cpp"
+		"source/common/std/win.cpp"
 	)
 endif ()
 
