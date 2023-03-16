@@ -144,6 +144,11 @@ public:
 		return set_line_debouncer_time(line, std::chrono::duration<double, std::micro> { time });
 	}
 
+	// line output
+
+	[[nodiscard]]
+	bool output_signal(size_t line);
+
 	// manual trigger
 
 	[[nodiscard]]

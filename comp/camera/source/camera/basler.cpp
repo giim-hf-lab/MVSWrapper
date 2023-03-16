@@ -237,6 +237,27 @@ bool basler::set_line_debouncer_time(size_t line, const std::chrono::duration<do
 namespace
 {
 
+static constexpr auto _output_lines = std::array {
+	Basler_UniversalCameraParams::LineSelector_Out1,
+	Basler_UniversalCameraParams::LineSelector_Out2,
+	Basler_UniversalCameraParams::LineSelector_Out3,
+	Basler_UniversalCameraParams::LineSelector_Out4
+};
+
+}
+
+[[nodiscard]]
+bool basler::output_signal(size_t line)
+{
+	return _instance.LineSelector.TrySetValue(_output_lines[line]) &&
+		_instance.LineSource.TrySetValue(Basler_UniversalCameraParams::LineSource_UserOutput) &&
+		_instance.UserOutputValue.TrySetValue(true) &&
+		_instance.UserOutputValue.TrySetValue(false);
+}
+
+namespace
+{
+
 static constexpr auto _trigger_lines = std::array {
 	Basler_UniversalCameraParams::TriggerSource_Line1,
 	Basler_UniversalCameraParams::TriggerSource_Line2,
