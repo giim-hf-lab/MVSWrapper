@@ -13,8 +13,6 @@ FetchContent_MakeAvailable(zlib)
 FetchContent_GetProperties(zlib SOURCE_DIR __L_DIR BINARY_DIR __L_BINARY_DIR)
 file(COPY_FILE "${__L_BINARY_DIR}/zconf.h" "${__L_DIR}/zconf.h" ONLY_IF_DIFFERENT)
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "zlib" "zlibstatic")
-
 get_archive_path("zlibstatic" "${__L_BINARY_DIR}" __L_LIBRARY)
 
 string(REPLACE "." ";" __L_VERSION_LIST "${__L_VERSION}")

@@ -15,5 +15,3 @@ add_library(mini INTERFACE)
 add_library(mini::mini ALIAS mini)
 
 target_include_directories(mini INTERFACE "${__L_SOURCE_DIR}/src")
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "mini")

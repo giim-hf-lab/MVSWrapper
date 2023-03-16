@@ -12,6 +12,4 @@ FetchContent_Declare(xlsxwriter
 
 FetchContent_MakeAvailable(xlsxwriter)
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "xlsxwriter")
-
 add_library(xlsxwriter::xlsxwriter ALIAS xlsxwriter)

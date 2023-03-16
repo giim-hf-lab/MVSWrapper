@@ -41,7 +41,3 @@ FetchContent_Declare(boost
 )
 
 FetchContent_MakeAvailable(boost)
-
-foreach (__L_MODULE ${__L_BOOST_REQUIRED_COMPONENTS})
-	set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "boost_${__L_MODULE}")
-endforeach ()

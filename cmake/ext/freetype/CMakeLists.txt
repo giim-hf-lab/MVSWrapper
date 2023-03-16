@@ -18,8 +18,6 @@ FetchContent_Declare(freetype
 FetchContent_MakeAvailable(freetype)
 FetchContent_GetProperties(freetype BINARY_DIR __L_BINARY_DIR)
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "freetype")
-
 get_archive_path("freetype" "${__L_BINARY_DIR}" __L_LIBRARY)
 
 string(REPLACE "." ";" __L_VERSION_LIST "${__L_VERSION}")

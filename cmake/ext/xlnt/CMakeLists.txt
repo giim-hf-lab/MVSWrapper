@@ -9,5 +9,3 @@ FetchContent_Declare(xlnt
 )
 
 FetchContent_MakeAvailable(xlnt)
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "xlnt")

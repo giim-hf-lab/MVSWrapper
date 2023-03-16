@@ -44,8 +44,6 @@ configure_file("sqlite3.cmake" "${__L_SOURCE_DIR}/CMakeLists.txt" @ONLY)
 
 add_subdirectory("${__L_SOURCE_DIR}" "${__L_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "sqlite3")
-
 get_archive_path("sqlite3" "${__L_BINARY_DIR}" __L_LIBRARY)
 
 set(SQLite3_FOUND TRUE PARENT_SCOPE)

@@ -9,5 +9,3 @@ FetchContent_Declare(argparse
 )
 
 FetchContent_MakeAvailable(argparse)
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "argparse")

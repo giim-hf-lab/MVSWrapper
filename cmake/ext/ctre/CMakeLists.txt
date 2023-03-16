@@ -9,5 +9,3 @@ FetchContent_Declare(ctre
 )
 
 FetchContent_MakeAvailable(ctre)
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "ctre")

@@ -9,5 +9,3 @@ FetchContent_Declare(nameof
 )
 
 FetchContent_MakeAvailable(nameof)
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "nameof")

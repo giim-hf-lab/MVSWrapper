@@ -66,5 +66,3 @@ set_property(
 	PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 		"${__L_CORE_INCLUDE_DIR}"
 )
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "paddle::inference")

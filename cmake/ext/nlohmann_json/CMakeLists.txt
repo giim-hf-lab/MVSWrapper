@@ -12,5 +12,3 @@ FetchContent_Declare(nlohmann_json
 )
 
 FetchContent_MakeAvailable(nlohmann_json)
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "nlohmann_json")

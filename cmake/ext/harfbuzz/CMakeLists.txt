@@ -20,8 +20,6 @@ FetchContent_Declare(harfbuzz
 FetchContent_MakeAvailable(harfbuzz)
 FetchContent_GetProperties(harfbuzz BINARY_DIR __L_BINARY_DIR)
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "harfbuzz")
-
 get_archive_path("harfbuzz" "${__L_BINARY_DIR}" __L_LIBRARY)
 
 string(REPLACE "." ";" __L_VERSION_LIST "${__L_VERSION}")

@@ -13,5 +13,3 @@ if (MSVC)
 			"/NODEFAULTLIB:GenApi_MDd_VC141_v3_1_Basler_pylon.lib"
 	)
 endif ()
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "pylon::pylon")

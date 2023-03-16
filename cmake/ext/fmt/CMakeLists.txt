@@ -13,5 +13,3 @@ FetchContent_Declare(fmt
 )
 
 FetchContent_MakeAvailable(fmt)
-
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "fmt" "fmt-header-only")

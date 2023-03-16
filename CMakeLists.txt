@@ -157,9 +157,8 @@ get_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
 list(REMOVE_DUPLICATES __L_DEPENDENCIES)
 set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE ${__L_DEPENDENCIES})
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM FALSE)
 foreach (__L_DEPENDENCY ${__L_DEPENDENCIES})
-	add_subdirectory("cmake/ext/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL)
+	add_subdirectory("cmake/ext/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL SYSTEM)
 endforeach ()
 
 foreach (__L_DEPENDENCY "basler" "mvs")
@@ -170,16 +169,9 @@ foreach (__L_DEPENDENCY "basler" "mvs")
 
 	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_DEPENDENCY_ENABLED)
 	if (__L_DEPENDENCY_ENABLED)
-		add_subdirectory("cmake/sys/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL)
+		add_subdirectory("cmake/sys/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL SYSTEM)
 	endif ()
 endforeach ()
-
-get_internal_cache(TARGETS_ENFORCE_SYSTEM __L_TARGETS)
-set_property(
-	TARGET
-		${__L_TARGETS}
-	PROPERTY SYSTEM TRUE
-)
 
 get_internal_cache(EXPORTED_COMPONENTS __L_COMPONENTS)
 foreach (__L_COMPONENT ${__L_COMPONENTS})

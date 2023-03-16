@@ -27,8 +27,6 @@ if(PNG_SHARED)
 	list(APPEND __L_TARGETS "png")
 endif()
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE ${__L_TARGETS})
-
 get_archive_path("png_static" "${__L_BINARY_DIR}" __L_LIBRARY)
 
 string(REPLACE "." ";" __L_VERSION_LIST "${__L_VERSION}")

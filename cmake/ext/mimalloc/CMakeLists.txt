@@ -34,6 +34,5 @@ if (MI_BUILD_SHARED)
 endif ()
 
 foreach (__L_TARGET ${__L_TARGETS})
-	set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE "mimalloc-${__L_TARGET}")
 	add_library("mimalloc::${__L_TARGET}" ALIAS "mimalloc-${__L_TARGET}")
 endforeach ()

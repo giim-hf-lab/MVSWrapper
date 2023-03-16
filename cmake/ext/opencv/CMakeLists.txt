@@ -38,8 +38,6 @@ FetchContent_Declare(opencv
 
 FetchContent_MakeAvailable(opencv)
 
-set_internal_cache(TARGETS_ENFORCE_SYSTEM TRUE $CACHE{OPENCV_MODULES_PUBLIC})
-
 get_prefixed_option(OPENCV_CONTRIB_MODULES OUTPUT_PREFIXES "__L")
 FetchContent_GetProperties(opencv SOURCE_DIR __L_OPENCV_DIR)
 
