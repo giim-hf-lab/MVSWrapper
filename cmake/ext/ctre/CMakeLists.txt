@@ -1,11 +1,11 @@
 get_ext_version(ctre __L_VERSION)
 
-FetchContent_Declare(ctre
-	GIT_REPOSITORY "${__G_GITHUB_PREFIX}hanickadot/compile-time-regular-expressions.git"
-	GIT_TAG "v${__L_VERSION}"
-	GIT_SUBMODULES_RECURSE TRUE
-	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
-	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-)
+string(REPLACE "." ";" __L_VERSION_LIST "${__L_VERSION}")
+list(GET __L_VERSION_LIST 0 __L_VERSION_MAJOR)
 
-FetchContent_MakeAvailable(ctre)
+add_ext_dep(ctre "${__G_GITHUB_PREFIX}" "hanickadot/compile-time-regular-expressions" "${__L_VERSION_MAJOR}.0" "v${__L_VERSION}" "CXX" ""
+	"-D" "CTRE_BUILD_TESTS:BOOL=FALSE"
+	"-D" "CTRE_BUILD_PACKAGE:BOOL=FALSE"
+	"-D" "CTRE_BUILD_PACKAGE_DEB:BOOL=FALSE"
+	"-D" "CTRE_BUILD_PACKAGE_RPM:BOOL=FALSE"
+)

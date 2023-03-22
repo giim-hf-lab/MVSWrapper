@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(__G_PROJECT_NAME "cpp-utilities")
+set(__G_PROJECT_NAME "utilities")
 
-project(${__G_PROJECT_NAME}
+project("${__G_PROJECT_NAME}"
 	VERSION 0.0
 	LANGUAGES
 		CXX
 )
 
+include(ExternalProject)
 include(FetchContent)
 include("cmake/utils.cmake" NO_POLICY_SCOPE)
 
@@ -28,9 +29,9 @@ enforce(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL TRUE)
 enforce(CMAKE_TLS_VERIFY TRUE)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" __G_BUILD_TYPE_UPPER)
-set(__G_CACHE_PREFIX "UTILITIES")
+string(TOUPPER "${__G_PROJECT_NAME}" __G_CACHE_PREFIX)
 set(__G_GENERATED_FILES_DIR "${CMAKE_BINARY_DIR}/_gen")
-string(TOLOWER "${__G_CACHE_PREFIX}" __G_NAMESPACE)
+set(__G_NAMESPACE "${__G_PROJECT_NAME}")
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)
 	set(__G_LEGACY_ARCHITECTURE ON)
@@ -74,7 +75,7 @@ endif ()
 
 set_internal_cache(EXTERNAL_DEPENDENCIES FALSE)
 set_ext_version(argparse "2.9")
-set_ext_version(boost "1.81.0")
+# set_ext_version(boost "1.81.0")
 set_ext_version(ctre "3.7.2")
 set_ext_version(fmt "9.1.0")
 set_ext_version(freetype "2.13.0")
@@ -88,7 +89,7 @@ set_ext_version(paddle "2.4.2")
 set_ext_version(png "1.6.39")
 set_ext_version(spdlog "1.11.0")
 set_ext_version(sqlite3 "3.41.1")
-set_ext_version(xlnt "1.5.0")
+set_ext_version(torch "2.0.0")
 set_ext_version(xlsxwriter "1.1.5")
 set_ext_version(zlib "1.2.13")
 

@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <cstdint>
 
 #include <algorithm>
 #include <array>
@@ -198,40 +199,40 @@ void basler::unsubscribe()
 }
 
 [[nodiscard]]
-bool basler::set_exposure_time(const std::chrono::duration<double, std::micro>& time)
+bool basler::exposure_time_range(std::chrono::microseconds& min, std::chrono::microseconds& max)
+{
+	auto& value = _instance.ExposureTimeRaw;
+	if (!value.IsValid() || !value.IsWritable())
+		return false;
+	min = std::chrono::microseconds { value.GetMin() };
+	max = std::chrono::microseconds { value.GetMax() };
+	return true;
+}
+
+[[nodiscard]]
+bool basler::set_exposure_time(const std::chrono::microseconds& time)
 {
 	return _instance.ExposureAuto.TrySetValue(Basler_UniversalCameraParams::ExposureAuto_Off) &&
-		_instance.ExposureTime.TrySetValue(time.count()) &&
-		_instance.ExposureMode.TrySetValue(Basler_UniversalCameraParams::ExposureMode_Timed);
+		_instance.ExposureMode.TrySetValue(Basler_UniversalCameraParams::ExposureMode_Timed) &&
+		_instance.ExposureTimeRaw.TrySetValue(time.count());
 }
 
 [[nodiscard]]
-bool basler::set_gain(double gain)
+bool basler::gain_range(int64_t& min, int64_t& max)
+{
+	auto& value = _instance.GainRaw;
+	if (!value.IsValid() || !value.IsWritable())
+		return false;
+	min = value.GetMin();
+	max = value.GetMax();
+	return true;
+}
+
+[[nodiscard]]
+bool basler::set_gain(int64_t gain)
 {
 	return _instance.GainAuto.TrySetValue(Basler_UniversalCameraParams::GainAuto_Off) &&
-		_instance.Gain.TrySetValue(gain);
-}
-
-namespace
-{
-
-static constexpr auto _universal_lines = std::array {
-	Basler_UniversalCameraParams::LineSelector_Line1,
-	Basler_UniversalCameraParams::LineSelector_Line2,
-	Basler_UniversalCameraParams::LineSelector_Line3,
-	Basler_UniversalCameraParams::LineSelector_Line4
-};
-
-}
-
-[[nodiscard]]
-bool basler::set_line_debouncer_time(size_t line, const std::chrono::duration<double, std::micro>& time)
-{
-	if (line >= _universal_lines.size())
-		return false;
-
-	return _instance.LineSelector.TrySetValue(_universal_lines[line]) &&
-		_instance.LineDebouncerTime.TrySetValue(time.count());
+		_instance.GainRaw.TrySetValue(gain);
 }
 
 namespace
@@ -249,7 +250,8 @@ static constexpr auto _output_lines = std::array {
 [[nodiscard]]
 bool basler::output_signal(size_t line)
 {
-	return _instance.LineSelector.TrySetValue(_output_lines[line]) &&
+	return line < _output_lines.size() &&
+		_instance.LineSelector.TrySetValue(_output_lines[line]) &&
 		_instance.LineSource.TrySetValue(Basler_UniversalCameraParams::LineSource_UserOutput) &&
 		_instance.UserOutputValue.TrySetValue(true) &&
 		_instance.UserOutputValue.TrySetValue(false);
@@ -267,15 +269,24 @@ static constexpr auto _trigger_lines = std::array {
 }
 
 [[nodiscard]]
+bool basler::trigger_delay_range(std::chrono::duration<double, std::micro>& min, std::chrono::duration<double, std::micro>& max)
+{
+	auto& value = _instance.TriggerDelayAbs;
+	if (!value.IsValid() || !value.IsWritable())
+		return false;
+	min = std::chrono::duration<double, std::micro> { value.GetMin() };
+	max = std::chrono::duration<double, std::micro> { value.GetMax() };
+	return true;
+}
+
+[[nodiscard]]
 bool basler::set_manual_trigger_line_source(size_t line, const std::chrono::duration<double, std::micro>& delay)
 {
-	if (line >= _trigger_lines.size())
-		return false;
-
-	return _instance.TriggerSelector.TrySetValue(Basler_UniversalCameraParams::TriggerSelector_FrameBurstStart) &&
+	return line < _trigger_lines.size() &&
+		_instance.TriggerSelector.TrySetValue(Basler_UniversalCameraParams::TriggerSelector_FrameStart) &&
 		_instance.TriggerSource.TrySetValue(_trigger_lines[line]) &&
 		_instance.TriggerActivation.TrySetValue(Basler_UniversalCameraParams::TriggerActivation_RisingEdge) &&
-		_instance.TriggerDelay.TrySetValue(delay.count()) &&
+		_instance.TriggerDelayAbs.TrySetValue(delay.count()) &&
 		_instance.TriggerMode.TrySetValue(Basler_UniversalCameraParams::TriggerMode_On);
 }
 

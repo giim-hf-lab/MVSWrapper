@@ -13,13 +13,7 @@
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin",
-        "Python_ROOT_DIR": "${sourceDir}/env",
-        "Python_FIND_STRATEGY": "LOCATION",
-        "Python_FIND_IMPLEMENTATIONS": "CPython",
-        "Python3_ROOT_DIR": "${sourceDir}/env",
-        "Python3_FIND_STRATEGY": "LOCATION",
-        "Python3_FIND_IMPLEMENTATIONS": "CPython"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin"
       }
     },
     {
@@ -48,7 +42,7 @@
         "CMAKE_EXE_LINKER_FLAGS_INIT": "/STACK:0x800000",
         "CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT": "/DEBUG:FULL",
         "CMAKE_EXE_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
-        "CMAKE_MFC_FLAG": "1",
+        "CMAKE_MFC_FLAG": "2",
         "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin"
       },
       "toolset": {
@@ -73,7 +67,7 @@
       "inherits": "windows-msvc-x64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded"
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDLL"
       }
     },
     {
@@ -81,7 +75,7 @@
       "inherits": "windows-msvc-x64",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug"
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebugDLL"
       }
     }
   ]

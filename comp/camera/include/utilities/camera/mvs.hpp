@@ -8,7 +8,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <string_view>
 #include <system_error>
 #include <vector>
 
@@ -41,7 +40,7 @@ private:
 public:
 	[[nodiscard]]
 	static std::vector<std::unique_ptr<mvs>> find(
-		const std::vector<std::string_view>& serials,
+		const std::vector<std::string>& serials,
 		transport_layer type,
 		bool colour
 	);
@@ -88,7 +87,7 @@ public:
 	[[nodiscard]]
 	inline bool set_exposure_time(const std::chrono::duration<Rep, Period>& time)
 	{
-		return set_exposure_time(std::chrono::duration<double, std::micro> { time });
+		return set_exposure_time(std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(time));
 	}
 
 	// gain
@@ -105,7 +104,7 @@ public:
 	[[nodiscard]]
 	inline bool set_line_debouncer_time(size_t line, const std::chrono::duration<Rep, Period>& time)
 	{
-		return set_line_debouncer_time(line, std::chrono::microseconds { time });
+		return set_line_debouncer_time(line, std::chrono::duration_cast<std::chrono::microseconds>(time));
 	}
 
 	// manual trigger

@@ -1,15 +1,8 @@
-set(FMT_OS ON)
-set(FMT_MODULE OFF)
-set(FMT_SYSTEM_HEADERS OFF)
-
 get_ext_version(fmt __L_VERSION)
 
-FetchContent_Declare(fmt
-	GIT_REPOSITORY "${__G_GITHUB_PREFIX}fmtlib/fmt.git"
-	GIT_TAG "${__L_VERSION}"
-	GIT_SUBMODULES_RECURSE TRUE
-	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
-	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+add_ext_dep(fmt "${__G_GITHUB_PREFIX}" "fmtlib/fmt" "${__L_VERSION}" "${__L_VERSION}" "CXX" ""
+	"-D" "FMT_DOC:BOOL=FALSE"
+	"-D" "FMT_TEST:BOOL=FALSE"
+	"-D" "FMT_MODULE:BOOL=TRUE"
+	"-D" "FMT_SYSTEM_HEADERS:BOOL=TRUE"
 )
-
-FetchContent_MakeAvailable(fmt)

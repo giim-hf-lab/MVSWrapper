@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+
 project(sqlite3
 	VERSION "@__L_VERSION@"
 	HOMEPAGE_URL "https://www.sqlite.org"
@@ -5,16 +7,7 @@ project(sqlite3
 		C
 )
 
-file(COPY
-	"sqlite3.h"
-	DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-file(COPY
-	"sqlite3.c"
-	DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/src"
-)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/userauth.c" __L_USERAUTH_C)
-file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/src/sqlite3.c" "${__L_USERAUTH_C}")
+include(GNUInstallDirs)
 
 add_library(sqlite3 STATIC
 	"src/sqlite3.c"
@@ -22,38 +15,22 @@ add_library(sqlite3 STATIC
 	"src/sqlite3expert.c"
 	# "src/sqlite3rbu.c"
 )
-add_library(sqlite3::sqlite3 ALIAS sqlite3)
-
-target_compile_definitions(sqlite3
-	PUBLIC
-		"SQLITE_ENABLE_ASYNCIO"
-		"SQLITE_ENABLE_ATOMIC_WRITE"
-		"SQLITE_ENABLE_BATCH_ATOMIC_WRITE"
-		"SQLITE_ENABLE_FTS3_PARENTHESIS"
-		"SQLITE_ENABLE_FTS4"
-		"SQLITE_ENABLE_FTS5"
-		"SQLITE_ENABLE_GEOPOLY"
-		"SQLITE_ENABLE_HIDDEN_COLUMNS"
-		"SQLITE_ENABLE_MATH_FUNCTIONS"
-		"SQLITE_ENABLE_MEMORY_MANAGEMENT"
-		"SQLITE_ENABLE_MEMSYS5"
-		"SQLITE_ENABLE_NORMALIZE"
-		"SQLITE_ENABLE_PREUPDATE_HOOK"
-		"SQLITE_ENABLE_RBU"
-		"SQLITE_ENABLE_RTREE"
-		"SQLITE_ENABLE_SESSION"
-		"SQLITE_ENABLE_SNAPSHOT"
-		"SQLITE_ENABLE_UNLOCK_NOTIFY"
-		"SQLITE_USE_ALLOCA"
-		"SQLITE_USER_AUTHENTICATION"
+set_property(
+	TARGET
+		sqlite3
+	PROPERTY PUBLIC_HEADER
+		"${CMAKE_INSTALL_INCLUDEDIR}/sqlite3.h"
+		"${CMAKE_INSTALL_INCLUDEDIR}/sqlite3async.h"
+		"${CMAKE_INSTALL_INCLUDEDIR}/sqlite3expert.h"
+		"${CMAKE_INSTALL_INCLUDEDIR}/sqlite3rbu.h"
+		"${CMAKE_INSTALL_INCLUDEDIR}/sqlite3userauth.h"
 )
-if (WIN32)
-	target_compile_definitions(sqlite3
-		PUBLIC
-			"SQLITE_WIN32_MALLOC"
-	)
-endif ()
 target_include_directories(sqlite3
 	PUBLIC
-		"include"
+		"${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(
+	TARGETS
+		sqlite3
 )

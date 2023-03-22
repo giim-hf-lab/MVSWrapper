@@ -1,15 +1,29 @@
-set(USE_STANDARD_TMPFILE ON)
-
 get_ext_version(xlsxwriter __L_VERSION)
 
-FetchContent_Declare(xlsxwriter
-	GIT_REPOSITORY "${__G_GITHUB_PREFIX}jmcnamara/libxlsxwriter.git"
-	GIT_TAG "RELEASE_${__L_VERSION}"
-	GIT_SUBMODULES_RECURSE TRUE
-	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
-	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+add_ext_dep(xlsxwriter "${__G_GITHUB_PREFIX}" "jmcnamara/libxlsxwriter" "" "RELEASE_${__L_VERSION}" "C" ""
+	"-D" "ZLIB_USE_STATIC_LIBS:BOOL=TRUE"
+	"-D" "ZLIB_ROOT:STRING=${ZLIB_ROOT}"
+	"-D" "USE_STANDARD_TMPFILE:BOOL=TRUE"
 )
 
-FetchContent_MakeAvailable(xlsxwriter)
+find_library(__L_LIBRARY xlsxwriter
+	PATHS
+		"${CMAKE_INSTALL_PREFIX}/lib"
+	REQUIRED
+	NO_DEFAULT_PATH
+)
 
-add_library(xlsxwriter::xlsxwriter ALIAS xlsxwriter)
+add_library(xlsxwriter::xlsxwriter STATIC IMPORTED GLOBAL)
+set_property(
+	TARGET
+		xlsxwriter::xlsxwriter
+	PROPERTY IMPORTED_LOCATION "${__L_LIBRARY}"
+)
+target_include_directories(xlsxwriter::xlsxwriter
+	INTERFACE
+		"${CMAKE_INSTALL_PREFIX}/include"
+)
+target_link_libraries(xlsxwriter::xlsxwriter
+	INTERFACE
+		ZLIB::ZLIB
+)

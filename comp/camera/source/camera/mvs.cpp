@@ -1,15 +1,22 @@
 #include <cstddef>
 
 #include <charconv>
+#ifndef _UTILITIES_USE_FMT
+#include <format>
+#endif
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <system_error>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
 
+#ifdef _UTILITIES_USE_FMT
+#include <fmt/compile.h>
+#include <fmt/core.h>
+#include <fmt/format.h>
+#endif
 #include <MvCameraControl.h>
 
 #include "utilities/camera/base.hpp"
@@ -34,23 +41,20 @@ struct mvs_error_category final : public std::error_category
 	[[nodiscard]]
 	virtual std::string message(int condition) const override
 	{
-		static constexpr size_t code_width = sizeof(int) * 2;
-		char code_string[code_width + 1];
-		auto [ptr, ec] = std::to_chars(code_string, code_string + code_width, unsigned int(condition), 16);
-		if (ec != std::errc())
-			throw std::system_error(std::make_error_code(ec));
-
-		size_t actual_code_width = ptr - code_string, padding_width = code_width - actual_code_width;
-		static constexpr std::string_view prefix = "HikVision MV Camera error (code 0x", suffix = ")";
-		static constexpr size_t total_width = prefix.size() + code_width + suffix.size() + 1;
-
-		std::string ret;
-		ret.reserve(total_width);
-		ret.append(prefix);
-		ret.append(padding_width, '0');
-		ret.append(code_string, actual_code_width);
-		ret.append(suffix);
-		return ret;
+		const unsigned int actual_code = condition;
+		static constexpr size_t code_width = sizeof(unsigned int) * 2;
+#define _UTILITIES_MVS_ERROR_STRING "HikVision MV Camera error (code 0x{1:0{0}X})"
+#ifdef _UTILITIES_USE_FMT
+		return fmt::format(
+			FMT_COMPILE(_UTILITIES_MVS_ERROR_STRING),
+#else
+		return std::format(
+			_UTILITIES_MVS_ERROR_STRING,
+#endif
+			code_width,
+			actual_code
+		);
+#undef _UTILITIES_MVS_ERROR_STRING
 	}
 };
 
@@ -142,9 +146,9 @@ namespace
 {
 
 [[nodiscard]]
-std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> _process_gig_e(::MV_CC_DEVICE_INFO_LIST& device_info_list)
+std::unordered_map<std::string, ::MV_CC_DEVICE_INFO *> _process_gig_e(::MV_CC_DEVICE_INFO_LIST& device_info_list)
 {
-	std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> ret;
+	std::unordered_map<std::string, ::MV_CC_DEVICE_INFO *> ret;
 	for (size_t i = 0; i < device_info_list.nDeviceNum; ++i)
 	{
 		auto device_info = device_info_list.pDeviceInfo[i];
@@ -154,9 +158,9 @@ std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> _process_gig_e(::MV_
 }
 
 [[nodiscard]]
-std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> _process_usb(::MV_CC_DEVICE_INFO_LIST& device_info_list)
+std::unordered_map<std::string, ::MV_CC_DEVICE_INFO *> _process_usb(::MV_CC_DEVICE_INFO_LIST& device_info_list)
 {
-	std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> ret;
+	std::unordered_map<std::string, ::MV_CC_DEVICE_INFO *> ret;
 	for (size_t i = 0; i < device_info_list.nDeviceNum; ++i)
 	{
 		auto device_info = device_info_list.pDeviceInfo[i];
@@ -169,7 +173,7 @@ std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> _process_usb(::MV_CC
 
 [[nodiscard]]
 std::vector<std::unique_ptr<mvs>> mvs::find(
-	const std::vector<std::string_view>& serials,
+	const std::vector<std::string>& serials,
 	transport_layer type,
 	bool colour
 )
@@ -196,7 +200,7 @@ std::vector<std::unique_ptr<mvs>> mvs::find(
 	}
 	else
 	{
-		std::unordered_map<std::string_view, ::MV_CC_DEVICE_INFO *> mapping;
+		std::unordered_map<std::string, ::MV_CC_DEVICE_INFO *> mapping;
 		switch (type)
 		{
 			case transport_layer::USB:
@@ -347,8 +351,8 @@ inline bool _mvs_set(void *handle, const char *name, const char *value)
 bool mvs::set_exposure_time(const std::chrono::duration<double, std::micro>& time)
 {
 	return _mvs_set<false>(_handle, "ExposureAuto", "Off") &&
-		_mvs_set(_handle, "ExposureTime", time.count()) &&
-		_mvs_set<false>(_handle, "ExposureMode", "Timed");
+		_mvs_set<false>(_handle, "ExposureMode", "Timed") &&
+		_mvs_set(_handle, "ExposureTime", time.count());
 }
 
 [[nodiscard]]

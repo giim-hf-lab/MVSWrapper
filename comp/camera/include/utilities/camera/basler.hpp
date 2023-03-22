@@ -2,6 +2,7 @@
 #define __UTILITIES_CAMERA_BASLER_HPP__
 
 #include <cstddef>
+#include <cstdint>
 
 #include <chrono>
 #include <list>
@@ -118,31 +119,37 @@ public:
 	// exposure
 
 	[[nodiscard]]
-	bool set_exposure_time(const std::chrono::duration<double, std::micro>& time);
+	bool exposure_time_range(std::chrono::microseconds& min, std::chrono::microseconds& max);
+
+	template<typename Rep1, typename Period1, typename Rep2, typename Period2>
+	[[nodiscard]]
+	inline bool exposure_time_range(std::chrono::duration<Rep1, Period1>& min, std::chrono::duration<Rep2, Period2>& max)
+	{
+		std::chrono::microseconds minr, maxr;
+		if (!exposure_time_range(minr, minr))
+			return false;
+		min = std::chrono::duration_cast<std::chrono::duration<Rep1, Period1>>(minr);
+		max = std::chrono::duration_cast<std::chrono::duration<Rep2, Period2>>(maxr);
+		return true;
+	}
+
+	[[nodiscard]]
+	bool set_exposure_time(const std::chrono::microseconds& time);
 
 	template<typename Rep, typename Period>
 	[[nodiscard]]
 	inline bool set_exposure_time(const std::chrono::duration<Rep, Period>& time)
 	{
-		return set_exposure_time(std::chrono::duration<double, std::micro> { time });
+		return set_exposure_time(std::chrono::duration_cast<std::chrono::microseconds>(time));
 	}
 
 	// gain
 
 	[[nodiscard]]
-	bool set_gain(double gain);
-
-	// line debouncer time
+	bool gain_range(int64_t& min, int64_t& max);
 
 	[[nodiscard]]
-	bool set_line_debouncer_time(size_t line, const std::chrono::duration<double, std::micro>& time);
-
-	template<typename Rep, typename Period>
-	[[nodiscard]]
-	inline bool set_line_debouncer_time(size_t line, const std::chrono::duration<Rep, Period>& time)
-	{
-		return set_line_debouncer_time(line, std::chrono::duration<double, std::micro> { time });
-	}
+	bool set_gain(int64_t gain);
 
 	// line output
 
@@ -152,13 +159,28 @@ public:
 	// manual trigger
 
 	[[nodiscard]]
+	bool trigger_delay_range(std::chrono::duration<double, std::micro>& min, std::chrono::duration<double, std::micro>& max);
+
+	template<typename Rep1, typename Period1, typename Rep2, typename Period2>
+	[[nodiscard]]
+	inline bool trigger_delay_range(std::chrono::duration<Rep1, Period1>& min, std::chrono::duration<Rep2, Period2>& max)
+	{
+		std::chrono::duration<double, std::micro> minr, maxr;
+		if (!trigger_delay_range(minr, maxr))
+			return false;
+		min = std::chrono::duration_cast<std::chrono::duration<Rep1, Period1>>(minr);
+		max = std::chrono::duration_cast<std::chrono::duration<Rep2, Period2>>(maxr);
+		return true;
+	}
+
+	[[nodiscard]]
 	bool set_manual_trigger_line_source(size_t line, const std::chrono::duration<double, std::micro>& delay);
 
 	template<typename Rep, typename Period>
 	[[nodiscard]]
 	inline bool set_manual_trigger_line_source(size_t line, const std::chrono::duration<Rep, Period>& delay)
 	{
-		return set_manual_trigger_line_source(line, std::chrono::duration<double, std::micro> { delay });
+		return set_manual_trigger_line_source(line, std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(delay));
 	}
 };
 

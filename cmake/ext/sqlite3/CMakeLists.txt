@@ -8,10 +8,9 @@ FetchContent_Declare(sqlite3
 	GIT_SUBMODULES_RECURSE TRUE
 	GIT_SHALLOW "${__G_FETCHCONTENT_GIT_SHALLOW}"
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-	OVERRIDE_FIND_PACKAGE
 )
+FetchContent_Populate(sqlite3)
 
-FetchContent_MakeAvailable(sqlite3)
 FetchContent_GetProperties(sqlite3 SOURCE_DIR __L_GIT_DIR)
 
 FetchContent_Declare(sqlite3-amalgamation
@@ -23,6 +22,42 @@ FetchContent_Populate(sqlite3-amalgamation)
 
 FetchContent_GetProperties(sqlite3-amalgamation SOURCE_DIR __L_SOURCE_DIR BINARY_DIR __L_BINARY_DIR)
 
+file(WRITE "${__L_SOURCE_DIR}/include/sqlite3.h"
+[[
+#ifndef SQLITE3_FEATURE_DEFINITIONS
+#define SQLITE3_FEATURE_DEFINITIONS
+
+#define SQLITE_ENABLE_ASYNCIO 1
+#define SQLITE_ENABLE_ATOMIC_WRITE 1
+#define SQLITE_ENABLE_BATCH_ATOMIC_WRITE 1
+#define SQLITE_ENABLE_FTS3_PARENTHESIS 1
+#define SQLITE_ENABLE_FTS4 1
+#define SQLITE_ENABLE_FTS5 1
+#define SQLITE_ENABLE_GEOPOLY 1
+#define SQLITE_ENABLE_HIDDEN_COLUMNS 1
+#define SQLITE_ENABLE_MATH_FUNCTIONS 1
+#define SQLITE_ENABLE_MEMORY_MANAGEMENT 1
+#define SQLITE_ENABLE_MEMSYS5 1
+#define SQLITE_ENABLE_NORMALIZE 1
+#define SQLITE_ENABLE_PREUPDATE_HOOK 1
+#define SQLITE_ENABLE_RBU 1
+#define SQLITE_ENABLE_RTREE 1
+#define SQLITE_ENABLE_SESSION 1
+#define SQLITE_ENABLE_SNAPSHOT 1
+#define SQLITE_ENABLE_UNLOCK_NOTIFY 1
+#define SQLITE_USE_ALLOCA 1
+#define SQLITE_USER_AUTHENTICATION 1
+
+#ifdef _WIN32
+#define SQLITE_WIN32_MALLOC 1
+#endif
+
+#endif
+
+]]
+)
+file(READ "${__L_SOURCE_DIR}/sqlite3.h" __L_SQLITE3_H)
+file(APPEND "${__L_SOURCE_DIR}/include/sqlite3.h" "${__L_SQLITE3_H}")
 file(COPY
 	"${__L_GIT_DIR}/ext/async/sqlite3async.h"
 	"${__L_GIT_DIR}/ext/expert/sqlite3expert.h"
@@ -31,23 +66,16 @@ file(COPY
 	DESTINATION "${__L_SOURCE_DIR}/include"
 )
 file(COPY
+	"${__L_SOURCE_DIR}/sqlite3.c"
 	"${__L_GIT_DIR}/ext/async/sqlite3async.c"
 	"${__L_GIT_DIR}/ext/expert/sqlite3expert.c"
 	"${__L_GIT_DIR}/ext/rbu/sqlite3rbu.c"
 	DESTINATION "${__L_SOURCE_DIR}/src"
 )
-file(COPY
-	"${__L_GIT_DIR}/ext/userauth/userauth.c"
-	DESTINATION "${__L_SOURCE_DIR}"
-)
+file(READ "${__L_GIT_DIR}/ext/userauth/userauth.c" __L_USERAUTH_C)
+file(APPEND "${__L_SOURCE_DIR}/src/sqlite3.c" "${__L_USERAUTH_C}")
 configure_file("sqlite3.cmake" "${__L_SOURCE_DIR}/CMakeLists.txt" @ONLY)
 
-add_subdirectory("${__L_SOURCE_DIR}" "${__L_BINARY_DIR}" EXCLUDE_FROM_ALL)
+ext_compile_install(sqlite3 "C" "${__L_SOURCE_DIR}" "" "${__L_BINARY_DIR}")
 
-get_archive_path("sqlite3" "${__L_BINARY_DIR}" __L_LIBRARY)
-
-set(SQLite3_FOUND TRUE PARENT_SCOPE)
-set(SQLite3_INCLUDE_DIRS "${__L_SOURCE_DIR}/include" PARENT_SCOPE)
-set(SQLite3_LIBRARIES "${__L_LIBRARY}" PARENT_SCOPE)
-set(SQLite3_VERSION "${__L_VERSION}" PARENT_SCOPE)
-set(SQLite3_VERSION_STRING "${__L_VERSION}" PARENT_SCOPE)
+find_package(SQLite3 "${__L_VERSION}" REQUIRED GLOBAL BYPASS_PROVIDER)
