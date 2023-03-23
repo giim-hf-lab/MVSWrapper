@@ -1,6 +1,6 @@
 get_ext_version(spdlog __L_VERSION)
 
-add_ext_dep(spdlog "${__G_GITHUB_PREFIX}" "gabime/spdlog" "${__L_VERSION}" "v${__L_VERSION}" "CXX" ""
+add_ext_dep(spdlog "${__G_GITHUB_PREFIX}" "gabime/spdlog" "${__L_VERSION}" "v${__L_VERSION}" "" "CONFIG"
 	"-D" "SPDLOG_BUILD_EXAMPLE:BOOL=FALSE"
 	"-D" "SPDLOG_SYSTEM_INCLUDES:BOOL=TRUE"
 	"-D" "SPDLOG_FMT_EXTERNAL:BOOL=TRUE"

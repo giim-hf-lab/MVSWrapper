@@ -76,6 +76,6 @@ file(READ "${__L_GIT_DIR}/ext/userauth/userauth.c" __L_USERAUTH_C)
 file(APPEND "${__L_SOURCE_DIR}/src/sqlite3.c" "${__L_USERAUTH_C}")
 configure_file("sqlite3.cmake" "${__L_SOURCE_DIR}/CMakeLists.txt" @ONLY)
 
-ext_compile_install(sqlite3 "C" "${__L_SOURCE_DIR}" "" "${__L_BINARY_DIR}")
+ext_compile_install(sqlite3 "${__L_SOURCE_DIR}" "" "${__L_BINARY_DIR}")
 
 find_package(SQLite3 "${__L_VERSION}" REQUIRED GLOBAL BYPASS_PROVIDER)

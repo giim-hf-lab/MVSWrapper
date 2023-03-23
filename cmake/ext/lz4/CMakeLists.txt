@@ -1,0 +1,8 @@
+get_ext_version(lz4 __L_VERSION)
+
+add_ext_dep(lz4 "${__G_GITHUB_PREFIX}" "lz4/lz4" "${__L_VERSION}" "v${__L_VERSION}" "build/cmake" "CONFIG"
+	"-D" "LZ4_BUILD_CLI:BOOL=FALSE"
+	"-D" "LZ4_BUILD_LEGACY_LZ4C:BOOL=FALSE"
+	"-D" "BUILD_STATIC_LIBS:BOOL=TRUE"
+	"-D" "LZ4_POSITION_INDEPENDENT_LIB:BOOL=FALSE"
+)

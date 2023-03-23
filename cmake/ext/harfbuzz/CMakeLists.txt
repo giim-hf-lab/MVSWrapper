@@ -22,31 +22,38 @@ FetchContent_Declare(harfbuzz
 FetchContent_Populate(harfbuzz)
 FetchContent_GetProperties(harfbuzz SOURCE_DIR __L_HARFBUZZ_SOURCE_DIR BINARY_DIR __L_HARFBUZZ_BINARY_DIR)
 
-find_package(Freetype "${__L_FREETYPE_VERSION}" QUIET GLOBAL BYPASS_PROVIDER)
-ext_compile_install(harfbuzz "C" "${__L_HARFBUZZ_SOURCE_DIR}" "" "${__L_HARFBUZZ_BINARY_DIR}"
+find_package(freetype "${__L_FREETYPE_VERSION}" QUIET CONFIG GLOBAL BYPASS_PROVIDER)
+if (TARGET freetype)
+	set(FREETYPE_FOUND TRUE)
+else ()
+	set(FREETYPE_FOUND FALSE)
+endif ()
+
+ext_compile_install(harfbuzz "${__L_HARFBUZZ_SOURCE_DIR}" "" "${__L_HARFBUZZ_BINARY_DIR}"
 	"-D" "HB_HAVE_FREETYPE:BOOL=${FREETYPE_FOUND}"
 	"-D" "HB_HAVE_UNISCRIBE:BOOL=TRUE"
 	"-D" "HB_HAVE_GDI:BOOL=TRUE"
 	"-D" "HB_HAVE_DIRECTWRITE:BOOL=TRUE"
 )
 
-ext_compile_install(Freetype "C" "${__L_FREETYPE_SOURCE_DIR}" "" "${__L_FREETYPE_BINARY_DIR}"
-	"-D" "BUILD_SHARED_LIBS:BOOL=FALSE"
+ext_compile_install(freetype "${__L_FREETYPE_SOURCE_DIR}" "" "${__L_FREETYPE_BINARY_DIR}"
+	"-D" "Protobuf_USE_STATIC_LIBS:BOOL=TRUE"
 	"-D" "ZLIB_USE_STATIC_LIBS:BOOL=TRUE"
 	"-D" "FT_REQUIRE_ZLIB:BOOL=TRUE"
 	"-D" "FT_REQUIRE_PNG:BOOL=TRUE"
 	"-D" "FT_REQUIRE_HARFBUZZ:BOOL=TRUE"
+	"-D" "FT_REQUIRE_BROTLI:BOOL=TRUE"
 	"-D" "FT_ENABLE_ERROR_STRINGS:BOOL=TRUE"
 )
 
 if (NOT FREETYPE_FOUND)
-	ext_compile_install(harfbuzz "C" "${__L_HARFBUZZ_SOURCE_DIR}" "" "${__L_HARFBUZZ_BINARY_DIR}"
+	find_package(freetype "${__L_FREETYPE_VERSION}" REQUIRED CONFIG GLOBAL BYPASS_PROVIDER)
+	ext_compile_install(harfbuzz "${__L_HARFBUZZ_SOURCE_DIR}" "" "${__L_HARFBUZZ_BINARY_DIR}"
 		"-D" "HB_HAVE_FREETYPE:BOOL=TRUE"
 		"-D" "HB_HAVE_UNISCRIBE:BOOL=TRUE"
 		"-D" "HB_HAVE_GDI:BOOL=TRUE"
 		"-D" "HB_HAVE_DIRECTWRITE:BOOL=TRUE"
 	)
-	find_package(Freetype "${__L_FREETYPE_VERSION}" REQUIRED GLOBAL BYPASS_PROVIDER)
 endif ()
 
-find_package(harfbuzz REQUIRED GLOBAL BYPASS_PROVIDER)
+find_package(harfbuzz REQUIRED CONFIG GLOBAL BYPASS_PROVIDER)

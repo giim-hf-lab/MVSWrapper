@@ -219,13 +219,16 @@ macro (get_archive_path TARGET BINARY_DIR OUTPUT_VARIABLE)
 	set("${OUTPUT_VARIABLE}" "${__L_OUTPUT_DIRECTORY}/${__L_PREFIX}${__L_OUTPUT_NAME}${__L_POSTFIX}${__L_SUFFIX}")
 endmacro ()
 
-macro (ext_compile_install NAME LANGUAGE SOURCE_DIR SUBDIR BINARY_DIR)
+macro (ext_compile_install NAME SOURCE_DIR SUBDIR BINARY_DIR)
 	set(__L_CONFIG_ARGS
-		"-S" "${SOURCE_DIR}${SUBDIR}"
+		"-S" "${SOURCE_DIR}/${SUBDIR}"
 		"-B" "${BINARY_DIR}"
+		"-D" "BUILD_SHARED_LIBS:BOOL=FALSE"
+		"-D" "BUILD_TESTING:BOOL=FALSE"
 		"-D" "CMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
+		"-D" "CMAKE_POLICY_DEFAULT_CMP0091:STRING=NEW"
 	)
-	foreach (__L_LANGUAGE ${LANGUAGE})
+	foreach (__L_LANGUAGE "C" "CXX")
 		list(APPEND __L_CONFIG_ARGS
 			"-D" "CMAKE_${__L_LANGUAGE}_COMPILER:STRING=${CMAKE_${__L_LANGUAGE}_COMPILER}"
 			"-D" "CMAKE_${__L_LANGUAGE}_EXTENSIONS:BOOL=${CMAKE_${__L_LANGUAGE}_EXTENSIONS}"
@@ -246,6 +249,7 @@ macro (ext_compile_install NAME LANGUAGE SOURCE_DIR SUBDIR BINARY_DIR)
 		)
 	endif ()
 
+	project_message(STATUS "Configuring ${NAME}...")
 	execute_process(
 		COMMAND "${CMAKE_COMMAND}"
 			${__L_CONFIG_ARGS}
@@ -263,6 +267,7 @@ macro (ext_compile_install NAME LANGUAGE SOURCE_DIR SUBDIR BINARY_DIR)
 		ENCODING "UTF-8"
 		COMMAND_ERROR_IS_FATAL "ANY"
 	)
+	project_message(STATUS "Building ${NAME}...")
 	execute_process(
 		COMMAND "${CMAKE_COMMAND}"
 			"--build" "${BINARY_DIR}"
@@ -273,6 +278,7 @@ macro (ext_compile_install NAME LANGUAGE SOURCE_DIR SUBDIR BINARY_DIR)
 		ENCODING "UTF-8"
 		COMMAND_ERROR_IS_FATAL "ANY"
 	)
+	project_message(STATUS "Installing ${NAME}...")
 	execute_process(
 		COMMAND "${CMAKE_COMMAND}"
 			"--install" "${BINARY_DIR}"
@@ -286,7 +292,8 @@ macro (ext_compile_install NAME LANGUAGE SOURCE_DIR SUBDIR BINARY_DIR)
 	)
 endmacro ()
 
-macro (add_ext_dep NAME PREFIX SUFFIX VERSION TAG LANGUAGE SUBDIR)
+macro (add_ext_dep NAME PREFIX SUFFIX VERSION TAG SUBDIR MODE)
+	project_message(STATUS "Fetching ${NAME}...")
 	FetchContent_Declare("${NAME}"
 		GIT_REPOSITORY "${PREFIX}${SUFFIX}.git"
 		GIT_TAG "${TAG}"
@@ -297,10 +304,10 @@ macro (add_ext_dep NAME PREFIX SUFFIX VERSION TAG LANGUAGE SUBDIR)
 	FetchContent_Populate("${NAME}")
 	FetchContent_GetProperties("${NAME}" SOURCE_DIR __L_SOURCE_DIR BINARY_DIR __L_BINARY_DIR)
 
-	ext_compile_install("${NAME}" "${LANGUAGE}" "${__L_SOURCE_DIR}" "${SUBDIR}" "${__L_BINARY_DIR}" ${ARGN})
+	ext_compile_install("${NAME}" "${__L_SOURCE_DIR}" "${SUBDIR}" "${__L_BINARY_DIR}" ${ARGN})
 
 	if (NOT "${VERSION}" STREQUAL "")
-		find_package("${NAME}" "${VERSION}" REQUIRED GLOBAL BYPASS_PROVIDER)
+		find_package("${NAME}" "${VERSION}" REQUIRED ${MODE} GLOBAL BYPASS_PROVIDER)
 	endif ()
 endmacro ()
 

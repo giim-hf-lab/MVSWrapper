@@ -1,6 +1,6 @@
 include_guard(GLOBAL)
 
-prepare("ext" "" "zlib" "png")
+prepare("ext" "" "png" "protobuf" "zlib")
 
 prefixed_option(OPENCV_CONTRIB_MODULES "" "OpenCV Contrib modules to be included as part of OpenCV."
 	TYPE STRING

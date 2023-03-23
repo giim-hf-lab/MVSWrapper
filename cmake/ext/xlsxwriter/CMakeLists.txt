@@ -1,8 +1,7 @@
 get_ext_version(xlsxwriter __L_VERSION)
 
-add_ext_dep(xlsxwriter "${__G_GITHUB_PREFIX}" "jmcnamara/libxlsxwriter" "" "RELEASE_${__L_VERSION}" "C" ""
+add_ext_dep(xlsxwriter "${__G_GITHUB_PREFIX}" "jmcnamara/libxlsxwriter" "" "RELEASE_${__L_VERSION}" "" ""
 	"-D" "ZLIB_USE_STATIC_LIBS:BOOL=TRUE"
-	"-D" "ZLIB_ROOT:STRING=${ZLIB_ROOT}"
 	"-D" "USE_STANDARD_TMPFILE:BOOL=TRUE"
 )
 

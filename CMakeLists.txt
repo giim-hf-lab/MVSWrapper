@@ -14,6 +14,7 @@ include("cmake/utils.cmake" NO_POLICY_SCOPE)
 
 enforce(CMAKE_POLICY_DEFAULT_CMP0054 NEW)
 enforce(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+enforce(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 enforce(CMAKE_POLICY_DEFAULT_CMP0097 NEW)
 enforce(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
 enforce(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
@@ -27,6 +28,8 @@ enforce(CMAKE_CXX_EXTENSIONS FALSE)
 
 enforce(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL TRUE)
 enforce(CMAKE_TLS_VERIFY TRUE)
+
+enforce(BUILD_SHARED_LIBS FALSE)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" __G_BUILD_TYPE_UPPER)
 string(TOUPPER "${__G_PROJECT_NAME}" __G_CACHE_PREFIX)
@@ -74,37 +77,34 @@ else ()
 endif ()
 
 set_internal_cache(EXTERNAL_DEPENDENCIES FALSE)
+set_ext_version(absl "20230125.1")
 set_ext_version(argparse "2.9")
 # set_ext_version(boost "1.81.0")
+set_ext_version(brotli "1.0.9")
 set_ext_version(ctre "3.7.2")
 set_ext_version(fmt "9.1.0")
 set_ext_version(freetype "2.13.0")
 set_ext_version(harfbuzz "7.1.0")
-set_ext_version(nameof "0.10.2")
-set_ext_version(nlohmann_json "3.11.2")
+set_ext_version(lz4 "1.9.4")
 set_ext_version(mimalloc "2.0.9")
 set_ext_version(mini "0.9.14")
+set_ext_version(nameof "0.10.2")
+set_ext_version(nlohmann_json "3.11.2")
 set_ext_version(opencv "4.7.0")
 set_ext_version(paddle "2.4.2")
 set_ext_version(png "1.6.39")
+set_ext_version(protobuf "22.2")
 set_ext_version(spdlog "1.11.0")
 set_ext_version(sqlite3 "3.41.1")
-set_ext_version(torch "2.0.0")
+# set_ext_version(torch "2.0.0")
 set_ext_version(xlsxwriter "1.1.5")
 set_ext_version(zlib "1.2.13")
+set_ext_version(zstd "1.5.4")
 
 prefixed_option(BUILD_ALL OFF "Enable all external dependencies.")
-prefixed_option(BUILD_ALL_TESTING "BUILD_ALL" "Enable all external dependencies."
+prefixed_option(BUILD_ALL_TESTING "BUILD_TESTING" "Enable all external dependencies."
 	REFERENCE
-	PREFIX_REFERENCE
 )
-
-enforce(BUILD_DOCS FALSE)
-enforce(BUILD_EXAMPLES FALSE)
-enforce(BUILD_PERF_TESTS FALSE)
-enforce(BUILD_SHARED_LIBS FALSE)
-enforce(BUILD_TESTING FALSE)
-enforce(BUILD_TESTS FALSE)
 
 set_internal_cache(EXPORTED_COMPONENTS FALSE)
 foreach (__L_COMPONENT
