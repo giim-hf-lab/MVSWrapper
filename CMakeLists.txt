@@ -1,180 +1,86 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(__G_PROJECT_NAME "utilities")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-project("${__G_PROJECT_NAME}"
+set(CURRENT_PROJECT_NAME "utilities")
+
+project("${CURRENT_PROJECT_NAME}"
 	VERSION 0.0
 	LANGUAGES
 		CXX
 )
 
-include(ExternalProject)
-include(FetchContent)
-include("cmake/utils.cmake" NO_POLICY_SCOPE)
+find_program(VCPKG_EXECUTABLE "vcpkg" PATHS "$ENV{VCPKG_ROOT}" REQUIRED NO_DEFAULT_PATH)
 
-enforce(CMAKE_POLICY_DEFAULT_CMP0054 NEW)
-enforce(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-enforce(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
-enforce(CMAKE_POLICY_DEFAULT_CMP0097 NEW)
-enforce(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
-enforce(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
-
-enforce(CMAKE_C_STANDARD 17)
-enforce(CMAKE_C_STANDARD_REQUIRED TRUE)
-enforce(CMAKE_C_EXTENSIONS FALSE)
-enforce(CMAKE_CXX_STANDARD 20)
-enforce(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-enforce(CMAKE_CXX_EXTENSIONS FALSE)
-
-enforce(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL TRUE)
-enforce(CMAKE_TLS_VERIFY TRUE)
-
-enforce(BUILD_SHARED_LIBS FALSE)
-
-string(TOUPPER "${CMAKE_BUILD_TYPE}" __G_BUILD_TYPE_UPPER)
-string(TOUPPER "${__G_PROJECT_NAME}" __G_CACHE_PREFIX)
-set(__G_GENERATED_FILES_DIR "${CMAKE_BINARY_DIR}/_gen")
-set(__G_NAMESPACE "${__G_PROJECT_NAME}")
-
-if (CMAKE_SIZEOF_VOID_P EQUAL 4)
-	set(__G_LEGACY_ARCHITECTURE ON)
-elseif (CMAKE_SIZEOF_VOID_P EQUAL 8)
-	set(__G_LEGACY_ARCHITECTURE OFF)
-else ()
-	project_message(FATAL_ERROR "Unknown pointer size: ${CMAKE_SIZEOF_VOID_P}")
-endif ()
-
-prefixed_option(FETCHCONTENT_BASE_DIR "" "The FETCHCONTENT_BASE_DIR variable for the current project."
-	REFERENCE
-	TYPE PATH
-)
-prefixed_option(FETCHCONTENT_GIT_SHALLOW ON "Fetch git repository as a shallow clone.")
-prefixed_option(FETCHCONTENT_GIT_USE_SSH OFF "Use SSH to fetch git repository.")
-prefixed_option(FETCHCONTENT_GITHUB_USE_SSH "FETCHCONTENT_GIT_USE_SSH" "Use SSH to fetch GitHub repository."
-	REFERENCE
-	PREFIX_REFERENCE
-)
-prefixed_option(FETCHCONTENT_GITLAB_USE_SSH "FETCHCONTENT_GIT_USE_SSH" "Use SSH to fetch GitLab repository."
-	REFERENCE
-	PREFIX_REFERENCE
-)
-
-get_prefixed_option(FETCHCONTENT_BASE_DIR)
-get_prefixed_option(FETCHCONTENT_GIT_SHALLOW OUTPUT_PREFIXES "__G")
-get_prefixed_option(FETCHCONTENT_GITHUB_USE_SSH OUTPUT_PREFIXES "__G")
-get_prefixed_option(FETCHCONTENT_GITLAB_USE_SSH OUTPUT_PREFIXES "__G")
-
-if (__G_FETCHCONTENT_GITHUB_USE_SSH)
-	set(__G_GITHUB_PREFIX "git@github.com:")
-else ()
-	set(__G_GITHUB_PREFIX "https://github.com/")
-endif ()
-
-if (__G_FETCHCONTENT_GITLAB_USE_SSH)
-	set(__G_GITLAB_PREFIX "git@gitlab.com:")
-else ()
-	set(__G_GITLAB_PREFIX "https://gitlab.com/")
-endif ()
-
-set_internal_cache(EXTERNAL_DEPENDENCIES FALSE)
-set_ext_version(absl "20230125.1")
-set_ext_version(argparse "2.9")
-# set_ext_version(boost "1.81.0")
-set_ext_version(brotli "1.0.9")
-set_ext_version(ctre "3.7.2")
-set_ext_version(fmt "9.1.0")
-set_ext_version(freetype "2.13.0")
-set_ext_version(harfbuzz "7.1.0")
-set_ext_version(lz4 "1.9.4")
-set_ext_version(mimalloc "2.0.9")
-set_ext_version(mini "0.9.14")
-set_ext_version(nameof "0.10.2")
-set_ext_version(nlohmann_json "3.11.2")
-set_ext_version(opencv "4.7.0")
-set_ext_version(paddle "2.4.2")
-set_ext_version(png "1.6.39")
-set_ext_version(protobuf "22.2")
-set_ext_version(spdlog "1.11.0")
-set_ext_version(sqlite3 "3.41.1")
-# set_ext_version(torch "2.0.0")
-set_ext_version(xlsxwriter "1.1.5")
-set_ext_version(zlib "1.2.13")
-set_ext_version(zstd "1.5.4")
-
-prefixed_option(BUILD_ALL OFF "Enable all external dependencies.")
-prefixed_option(BUILD_ALL_TESTING "BUILD_TESTING" "Enable all external dependencies."
-	REFERENCE
+execute_process(
+	COMMAND
+		"${VCPKG_EXECUTABLE}"
+		"install"
+		"--recurse"
+		"--triplet" "${VCPKG_HOST_TRIPLET}-static"
+		"abseil[cxx17]"
+		"antlr4"
+		"boost[mpi]"
+		"boost-locale[icu]"
+		"ceres[cuda,cxsparse,eigensparse,lapack,suitesparse]"
+		"curl[brotli,c-ares,http2,idn,mbedtls,non-http,openssl,schannel,ssh,ssl,sspi,tool,websockets,winidn,winldap,winssl]"
+		"fmt"
+		"folly[bzip2,libsodium,lz4,lzma,snappy,zlib,zstd]"
+		"freetype[brotli,bzip2,error-strings,png,zlib]"
+		"gperftools[override]"
+		"hdf5[cpp,map,szip,zlib]"
+		"jemalloc"
+		"jsoncpp"
+		"leveldb[crc32c,snappy]"
+		"libarchive[bzip2,crypto,libxml2,lz4,lzma,lzo,openssl,zstd]"
+		"libpq[icu,lz4,openssl,xml,xslt,zlib,zstd]"
+		"libevent[openssl,thread]"
+		"libjpeg-turbo[jpeg7,jpeg8]"
+		"libsrt[bonding]"
+		"libssh[crypto,mbedtls,openssl,zlib]"
+		"libssh2[zlib]"
+		"libtomcrypt"
+		"libxlsxwriter"
+		"libvpx[highbitdepth,realtime]"
+		"libxml2[ftp,http,iconv,lzma,zlib]"
+		"libyaml"
+		"libzip[bzip2,commoncrypto,default-aes,liblzma,mbedtls,openssl,wincrypto,zstd]"
+		"mbedtls[pthreads]"
+		"mimalloc[override]"
+		"msgpack"
+		"nlohmann-json"
+		"openblas[simplethread,threads]"
+		"opencv[ade,cuda,cudnn,dnn,dnn-cuda,eigen,freetype,jpeg,lapack,nonfree,openmp,png,quirc,sfm,tiff,webp]"
+		"opus[avx]"
+		"pkgconf"
+		"protobuf[zlib]"
+		"rapidjson"
+		"ryml"
+		"sdl2[base,samplerate]"
+		"soxr[lsr-bindings,openmp]"
+		"spdlog[wchar]"
+		"sqlite3[fts3,fts4,fts5,geopoly,json1,limit,math,memsys5,rtree,session,tool,zlib]"
+		"tiff[cxx,jpeg,lzma,zip,zstd]"
+		"x264[asm,chroma-format-all,default-features]"
+		"xlnt"
+		"yaml-cpp"
+	OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_install.${VCPKG_HOST_TRIPLET}-static.log"
+	ERROR_FILE "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_install.${VCPKG_HOST_TRIPLET}-static.log"
+	ENCODING "UTF-8"
+	COMMAND_ERROR_IS_FATAL "ANY"
 )
 
-set_internal_cache(EXPORTED_COMPONENTS FALSE)
-foreach (__L_COMPONENT
-	"camera"
-	"common"
+execute_process(
+	COMMAND
+		"${VCPKG_EXECUTABLE}"
+		"install"
+		"--recurse"
+		"--triplet" "${VCPKG_HOST_TRIPLET}"
+		"onnxruntime-gpu"
+	OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_install.${VCPKG_HOST_TRIPLET}.log"
+	ERROR_FILE "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_install.${VCPKG_HOST_TRIPLET}.log"
+	ENCODING "UTF-8"
+	COMMAND_ERROR_IS_FATAL "ANY"
 )
-	string(TOUPPER "${__L_COMPONENT}" __L_COMPONENT_UPPER)
-	set(__L_GUARD_NAME "BUILD_${__L_COMPONENT_UPPER}")
 
-	prefixed_option("${__L_GUARD_NAME}" "BUILD_ALL" "Build `${__L_COMPONENT}`."
-		REFERENCE
-		PREFIX_REFERENCE
-	)
-
-	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_COMPONENT_BUILT)
-	if (__L_COMPONENT_BUILT)
-		set_internal_cache(EXPORTED_COMPONENTS TRUE "${__L_COMPONENT}")
-		prefixed_option("${__L_GUARD_NAME}_TESTING" "BUILD_ALL_TESTING" "Build `${__L_COMPONENT}`."
-			REFERENCE
-			PREFIX_REFERENCE
-		)
-	endif ()
-endforeach ()
-
-get_internal_cache(EXPORTED_COMPONENTS __L_COMPONENTS)
-set_internal_cache(EXPORTED_COMPONENTS FALSE)
-prepare("comp" "" ${__L_COMPONENTS})
-
-prefixed_option(ENABLE_ALL OFF "Enable all external dependencies.")
-get_prefixed_option(ENABLE_ALL OUTPUT_PREFIXES "__G")
-
-set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE)
-get_internal_cache(EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
-foreach (__L_DEPENDENCY ${__L_DEPENDENCIES})
-	string(TOUPPER "${__L_DEPENDENCY}" __L_DEPENDENCY_UPPER)
-	set(__L_GUARD_NAME "EXPORT_${__L_DEPENDENCY_UPPER}")
-
-	prefixed_option("${__L_GUARD_NAME}" "${__G_ENABLE_ALL}" "Fetch and export targets created by `${__L_DEPENDENCY}`.")
-
-	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_DEPENDENCY_EXPORTED)
-	if (__L_DEPENDENCY_EXPORTED)
-		set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES TRUE "${__L_DEPENDENCY}")
-	endif ()
-endforeach ()
-
-get_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
-set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE)
-prepare("ext" "" ${__L_DEPENDENCIES})
-
-get_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES __L_DEPENDENCIES)
-list(REMOVE_DUPLICATES __L_DEPENDENCIES)
-set_internal_cache(EXPORTED_EXTERNAL_DEPENDENCIES FALSE ${__L_DEPENDENCIES})
-
-foreach (__L_DEPENDENCY ${__L_DEPENDENCIES})
-	add_subdirectory("cmake/ext/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL SYSTEM)
-endforeach ()
-
-foreach (__L_DEPENDENCY "basler" "mvs")
-	string(TOUPPER "${__L_DEPENDENCY}" __L_DEPENDENCY_UPPER)
-	set(__L_GUARD_NAME "FIND_${__L_DEPENDENCY_UPPER}")
-
-	prefixed_option("${__L_GUARD_NAME}" "${__G_ENABLE_ALL}" "Find and create targets for `${__L_DEPENDENCY}`.")
-
-	get_prefixed_option("${__L_GUARD_NAME}" OUTPUT_VARIABLE __L_DEPENDENCY_ENABLED)
-	if (__L_DEPENDENCY_ENABLED)
-		add_subdirectory("cmake/sys/${__L_DEPENDENCY}" EXCLUDE_FROM_ALL SYSTEM)
-	endif ()
-endforeach ()
-
-get_internal_cache(EXPORTED_COMPONENTS __L_COMPONENTS)
-foreach (__L_COMPONENT ${__L_COMPONENTS})
-	add_subdirectory("comp/${__L_COMPONENT}" EXCLUDE_FROM_ALL)
-endforeach ()
+add_subdirectory("comp/camera" EXCLUDE_FROM_ALL)

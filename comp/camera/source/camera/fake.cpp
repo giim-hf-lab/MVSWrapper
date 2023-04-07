@@ -53,19 +53,14 @@ fake::fake(
 	const std::filesystem::path& base,
 	std::string serial,
 	bool colour,
-	size_t base_interval,
-	int64_t offset_range
+	std::chrono::milliseconds interval
 ) :
 	device {},
 	_pool { _load_images(base / serial, colour) },
 	_serial { std::move(serial) },
 	_rotation(base::rotation_direction::ORIGINAL),
-	_base_interval(base_interval),
-	_seed_generator {},
-	_time_generator { _seed_generator() },
-	_selection_generator { _seed_generator() },
-	_offset_distribution { -offset_range, offset_range },
-	_selection_distribution { 0, _pool.size() - 1 },
+	_index(0),
+	_interval(std::move(interval)),
 	_lock {},
 	_images {},
 	_counter(0),
@@ -75,21 +70,23 @@ fake::fake(
 
 void fake::_simulate(std::stop_token token)
 {
+	if (_pool.empty())
+		return;
+
 	while (!token.stop_requested())
 	{
 		auto now = std::chrono::steady_clock::now();
-		const auto selection = _selection_distribution(_selection_generator);
-		const std::chrono::milliseconds required_elapsed { _base_interval + _offset_distribution(_time_generator) };
-		while (std::chrono::steady_clock::now() - now < required_elapsed)
+		while (std::chrono::steady_clock::now() - now < _interval)
 		{
 			std::this_thread::sleep_for(1ms);
 			if (token.stop_requested())
 				return;
 		}
 
-		const auto& image = _pool[selection];
 		auto guard = std::lock_guard { _lock };
-		_utils::rotate(image, _images.emplace_back(), _rotation);
+		_utils::rotate(_pool[_index++], _images.emplace_back(), _rotation);
+		if (_index == _pool.size())
+			_index = 0;
 	}
 }
 
@@ -98,15 +95,14 @@ std::vector<std::unique_ptr<fake>> fake::find(
 	const std::filesystem::path& base,
 	std::vector<std::string> serials,
 	bool colour,
-	size_t base_interval,
-	int64_t offset_range
+	const std::chrono::milliseconds& interval
 )
 {
 	std::vector<std::unique_ptr<fake>> ret;
 	ret.reserve(serials.size());
 	for (auto& serial : serials)
 		if (std::filesystem::exists(base / serial))
-			ret.emplace_back(new fake(base, std::move(serial), colour, base_interval, offset_range));
+			ret.emplace_back(new fake(base, std::move(serial), colour, interval));
 	return ret;
 }
 

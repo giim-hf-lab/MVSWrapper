@@ -21,6 +21,8 @@
 
 #include "./utils.hpp"
 
+#include "../../CLoger.h"
+
 namespace utilities::camera
 {
 
@@ -239,22 +241,23 @@ namespace
 {
 
 static constexpr auto _output_lines = std::array {
-	Basler_UniversalCameraParams::LineSelector_Out1,
-	Basler_UniversalCameraParams::LineSelector_Out2,
-	Basler_UniversalCameraParams::LineSelector_Out3,
-	Basler_UniversalCameraParams::LineSelector_Out4
+	Basler_UniversalCameraParams::LineSelector_Line1,
+	Basler_UniversalCameraParams::LineSelector_Line2,
+	Basler_UniversalCameraParams::LineSelector_Line3,
+	Basler_UniversalCameraParams::LineSelector_Line4
 };
 
 }
 
 [[nodiscard]]
-bool basler::output_signal(size_t line)
+bool basler::output_signal(size_t line, bool value)
 {
 	return line < _output_lines.size() &&
 		_instance.LineSelector.TrySetValue(_output_lines[line]) &&
-		_instance.LineSource.TrySetValue(Basler_UniversalCameraParams::LineSource_UserOutput) &&
-		_instance.UserOutputValue.TrySetValue(true) &&
-		_instance.UserOutputValue.TrySetValue(false);
+		_instance.LineMode.TrySetValue(Basler_UniversalCameraParams::LineMode_Output) &&
+		_instance.LineSource.TrySetValue(Basler_UniversalCameraParams::LineSource_UserOutput1) &&
+		_instance.UserOutputSelector.TrySetValue(Basler_UniversalCameraParams::UserOutputSelector_UserOutput1) &&
+		_instance.UserOutputValue.TrySetValue(value);
 }
 
 namespace

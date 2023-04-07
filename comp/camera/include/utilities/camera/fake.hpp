@@ -4,13 +4,13 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <chrono>
 #include <filesystem>
 #include <memory>
-#include <random>
+#include <mutex>
 #include <stop_token>
 #include <thread>
 #include <vector>
-#include <system_error>
 
 #include <opencv2/core.hpp>
 
@@ -24,11 +24,8 @@ class fake final : public base::device
 	std::vector<cv::Mat> _pool;
 	std::string _serial;
 	base::rotation_direction _rotation;
-	size_t _base_interval;
-	std::random_device _seed_generator;
-	std::mt19937_64 _time_generator, _selection_generator;
-	std::uniform_int_distribution<int64_t> _offset_distribution;
-	std::uniform_int_distribution<size_t> _selection_distribution;
+	size_t _index;
+	std::chrono::milliseconds _interval;
 	std::mutex _lock;
 	std::list<cv::Mat> _images;
 	size_t _counter;
@@ -40,8 +37,7 @@ class fake final : public base::device
 		const std::filesystem::path& base,
 		std::string serial,
 		bool colour,
-		size_t base_interval,
-		int64_t offset_range
+		std::chrono::milliseconds interval
 	);
 
 	void _simulate(std::stop_token token);
@@ -51,8 +47,7 @@ public:
 		const std::filesystem::path& base,
 		std::vector<std::string> serials,
 		bool colour,
-		size_t base_interval,
-		int64_t offset_range
+		const std::chrono::milliseconds& interval
 	);
 
 	virtual ~fake() noexcept override;

@@ -1,21 +1,38 @@
-create_library_target(camera "${__G_NAMESPACE}" __L_COMPONENT_NAME STATIC
+find_package(fmt CONFIG REQUIRED CONFIG GLOBAL)
+
+find_package(OpenCV REQUIRED COMPONENTS core dnn highgui imgcodecs imgproc CONFIG GLOBAL)
+
+find_package(HikVisionMVS MODULE REQUIRED GLOBAL BYPASS_PROVIDER)
+find_package(HuarayMV MODULE REQUIRED GLOBAL BYPASS_PROVIDER)
+find_package(pylon 7 CONFIG REQUIRED GLOBAL BYPASS_PROVIDER)
+
+add_library("${CURRENT_PROJECT_NAME}_camera" STATIC
 	"source/camera/basler.cpp"
 	"source/camera/fake.cpp"
-	"source/camera/mvs.cpp"
+	"source/camera/hikvision.cpp"
+	"source/camera/huaray.cpp"
 )
-target_compile_definitions("${__L_COMPONENT_NAME}"
-	PUBLIC
-		"_UTILITIES_USE_FMT"
+add_library("${CURRENT_PROJECT_NAME}::camera" ALIAS "${CURRENT_PROJECT_NAME}_camera")
+
+target_compile_definitions("${CURRENT_PROJECT_NAME}_camera"
+	PRIVATE
+		_UTILITIES_USE_FMT
 )
-target_include_directories("${__L_COMPONENT_NAME}"
+target_include_directories("${CURRENT_PROJECT_NAME}_camera"
 	PUBLIC
-		"${CMAKE_CURRENT_SOURCE_DIR}/include"
+		"include"
 )
-target_link_libraries("${__L_COMPONENT_NAME}"
-	PUBLIC
+target_link_libraries("${CURRENT_PROJECT_NAME}_camera"
+	PRIVATE
+		"${JBIG_LIBRARY}"
+		"${LERC_LIBRARY}"
 		fmt::fmt
-		mvs::mvs
 		opencv_core
+		opencv_highgui
 		opencv_imgcodecs
+		opencv_imgproc
+
+		hikvision::mvs
+		huaray::mv
 		pylon::pylon
 )

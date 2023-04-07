@@ -1,5 +1,5 @@
-#ifndef __UTILITIES_CAMERA_MVS_HPP__
-#define __UTILITIES_CAMERA_MVS_HPP__
+#ifndef __UTILITIES_CAMERA_HIKVISION_HPP__
+#define __UTILITIES_CAMERA_HIKVISION_HPP__
 
 #include <cstddef>
 
@@ -8,7 +8,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <system_error>
 #include <vector>
 
 #include <MvCameraControl.h>
@@ -19,7 +18,7 @@
 namespace utilities::camera
 {
 
-struct mvs final : public base::device
+struct hikvision final : public base::device
 {
 	enum class transport_layer
 	{
@@ -27,7 +26,7 @@ struct mvs final : public base::device
 		GIG_E
 	};
 private:
-	static void _callback(unsigned char *data, MV_FRAME_OUT_INFO_EX *info, void *user);
+	static void _callback(unsigned char *data, ::MV_FRAME_OUT_INFO_EX *info, void *user);
 
 	void *_handle;
 	bool _colour;
@@ -36,23 +35,23 @@ private:
 	std::list<cv::Mat> _images;
 	size_t _counter;
 
-	mvs(const ::MV_CC_DEVICE_INFO *device_info, bool colour);
+	hikvision(const ::MV_CC_DEVICE_INFO *device_info, bool colour);
 public:
 	[[nodiscard]]
-	static std::vector<std::unique_ptr<mvs>> find(
+	static std::vector<std::unique_ptr<hikvision>> find(
 		const std::vector<std::string>& serials,
 		transport_layer type,
 		bool colour
 	);
 
-	virtual ~mvs() noexcept override;
+	virtual ~hikvision() noexcept override;
 
 	// base::device
 
 	[[nodiscard]]
 	inline virtual base::brand brand() const override
 	{
-		return base::brand::MVS;
+		return base::brand::HIKVISION;
 	}
 
 	virtual void close() override;
@@ -107,27 +106,23 @@ public:
 		return set_line_debouncer_time(line, std::chrono::duration_cast<std::chrono::microseconds>(time));
 	}
 
+	// line output
+
+	[[nodiscard]]
+	bool output_signal(size_t line, const std::chrono::microseconds& duration);
+
 	// manual trigger
 
 	[[nodiscard]]
-	bool set_manual_trigger_line_source(
-		size_t line,
-		const std::chrono::duration<double, std::micro>& delay,
-		size_t activation = 1
-	);
+	bool set_manual_trigger_line_source(size_t line, const std::chrono::duration<double, std::micro>& delay);
 
-	template<typename Rep, typename Period>
+	template<typename Rep1, typename Period1, typename Rep2, typename Period2>
 	[[nodiscard]]
-	inline bool set_manual_trigger_line_source(
-		size_t line,
-		const std::chrono::duration<Rep, Period>& delay,
-		size_t activation = 1
-	)
+	inline bool set_manual_trigger_line_source(size_t line, const std::chrono::duration<Rep1, Period1>& delay)
 	{
 		return set_manual_trigger_line_source(
 			line,
-			std::chrono::duration<double, std::micro> { delay },
-			activation
+			std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(delay)
 		);
 	}
 };

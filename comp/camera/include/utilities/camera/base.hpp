@@ -16,7 +16,8 @@ enum class brand
 {
 	UNKNOWN,
 	BASLER,
-	MVS
+	HIKVISION,
+	HUARAY
 };
 
 struct frame final

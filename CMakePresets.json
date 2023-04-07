@@ -9,11 +9,22 @@
       "name": "base",
       "hidden": true,
       "generator": "Ninja",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin"
+        "CMAKE_C_EXTENSIONS": false,
+        "CMAKE_C_STANDARD": "17",
+        "CMAKE_C_STANDARD_REQUIRED": true,
+        "CMAKE_CUDA_COMPILER": "nvcc",
+        "CMAKE_CUDA_EXTENSIONS": false,
+        "CMAKE_CUDA_STANDARD": "17",
+        "CMAKE_CUDA_STANDARD_REQUIRED": true,
+        "CMAKE_CXX_EXTENSIONS": false,
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": true,
+        "CMAKE_FIND_PACKAGE_TARGETS_GLOBAL": true,
+        "CMAKE_TLS_VERIFY": true
       }
     },
     {
@@ -31,19 +42,20 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe",
-        "CMAKE_C_FLAGS_INIT": "/options:strict /F 0x800000 /external:W0 /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:preprocessor /permissive- /Zc:__STDC__ /D_CRT_DECLARE_NONSTDC_NAMES /DNOMINMAX /DSTRICT",
-        "CMAKE_C_FLAGS_DEBUG_INIT": "/JMC /ZI",
-        "CMAKE_C_FLAGS_RELEASE_INIT": "/Zi",
-        "CMAKE_CXX_FLAGS_INIT": "/options:strict /F 0x800000 /external:W0 /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:lambda /Zc:preprocessor /permissive- /EHsc /Zc:__cplusplus /Zc:enumTypes /Zc:externConstexpr /Zc:inline /Zc:throwingNew /Zc:__STDC__ /D_CRT_DECLARE_NONSTDC_NAMES /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES /DNOMINMAX /DSTRICT",
-        "CMAKE_CXX_FLAGS_DEBUG_INIT": "/JMC /ZI",
-        "CMAKE_CXX_FLAGS_RELEASE_INIT": "/Zi",
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_C_FLAGS_INIT": "/F0x800000 /external:W0 /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /Zc:preprocessor /Zc:__STDC__ /permissive- /D_CRT_DECLARE_NONSTDC_NAMES /DNOMINMAX /DSTRICT",
+        "CMAKE_C_FLAGS_DEBUG_INIT": "/JMC",
+        "CMAKE_CXX_FLAGS_INIT": "/F0x800000 /external:W0 /utf-8 /volatile:iso /fp:contract /fp:precise /openmp /EHsc /Zc:lambda /Zc:preprocessor /Zc:__STDC__ /Zc:__cplusplus /Zc:enumTypes /Zc:externConstexpr /Zc:inline /Zc:throwingNew /permissive- /D_CRT_DECLARE_NONSTDC_NAMES /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES /DNOMINMAX /DSTRICT",
+        "CMAKE_CXX_FLAGS_DEBUG_INIT": "/JMC",
         "CMAKE_EXE_LINKER_FLAGS_INIT": "/STACK:0x800000",
-        "CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT": "/DEBUG:FULL",
         "CMAKE_EXE_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
-        "CMAKE_MFC_FLAG": "1",
-        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/out/build/${presetName}/bin"
+        "CMAKE_MODULE_LINKER_FLAGS_INIT": "/STACK:0x800000",
+        "CMAKE_MODULE_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": "/STACK:0x800000",
+        "CMAKE_SHARED_LINKER_FLAGS_RELEASE_INIT": "/LTCG",
+        "VCPKG_HOST_TRIPLET": "x64-windows",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
       },
       "toolset": {
         "value": "host=x64",
@@ -63,16 +75,28 @@
       }
     },
     {
-      "name": "windows-msvc-x64-release",
+      "name": "x64-release",
       "inherits": "windows-msvc-x64",
+      "displayName": "Windows MSVC x64 [Release]",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded"
       }
     },
     {
-      "name": "windows-msvc-x64-debug",
+      "name": "x64-debug",
       "inherits": "windows-msvc-x64",
+      "displayName": "Windows MSVC x64 [Debug]",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug"

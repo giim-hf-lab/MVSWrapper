@@ -154,7 +154,7 @@ public:
 	// line output
 
 	[[nodiscard]]
-	bool output_signal(size_t line);
+	bool output_signal(size_t line, bool value);
 
 	// manual trigger
 
